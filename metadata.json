@@ -1,0 +1,9 @@
+{
+  "name": "D&E Hood Cleaning Management System",
+  "description": "Sistema profissional de automação e gestão para limpeza de coifas comerciais (NFPA 96).",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
