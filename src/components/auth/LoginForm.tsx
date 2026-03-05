@@ -111,10 +111,16 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
             if (error) throw error;
 
+            if (!data.user) throw new Error('Falha na autenticação: Usuário não retornado');
+
             // Login handled in App.tsx via onAuthStateChange or manual call
-            handleLogin(e);
+            await handleLogin(e);
         } catch (error: any) {
-            setLocalError(error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : error.message);
+            console.error("Login Error:", error);
+            let msg = error.message;
+            if (msg === 'Invalid login credentials') msg = 'E-mail ou senha incorretos';
+            if (msg === 'Email not confirmed') msg = 'E-mail ainda não confirmado. Verifique sua caixa de entrada ou o painel do Supabase.';
+            setLocalError(msg);
         } finally {
             setIsLoading(false);
         }
