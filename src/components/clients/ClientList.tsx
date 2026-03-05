@@ -13,7 +13,7 @@ interface ClientListProps {
     setShowEditClientModal: (show: boolean) => void;
     setSelectedClientId: (id: string | number) => void;
     setShowServiceModal: (show: boolean) => void;
-    handleDeleteClient: (id: number) => void;
+    handleDeleteClient: (id: string | number) => void;
 }
 
 const ClientList: React.FC<ClientListProps> = ({

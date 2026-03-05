@@ -486,7 +486,7 @@ export default function App() {
     fetchData();
   };
 
-  const handleDeleteClient = async (id: number) => {
+  const handleDeleteClient = async (id: string | number) => {
     if (!window.confirm("Tem certeza que deseja apagar este cliente? Esta ação não pode ser desfeita.")) return;
     const { error } = await supabase.from('clients').delete().eq('id', id);
     if (error) {
@@ -601,7 +601,7 @@ export default function App() {
 
       if (!error) {
         setShowServiceModal(false);
-        setSelectedClientId: (id: string | number) => void;
+        setSelectedClientId(null);
         setInspectionPhotos([]);
         setPreCleaningChecklistData({});
         fetchData();
