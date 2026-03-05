@@ -180,7 +180,20 @@ export default function App() {
     if (e) e.preventDefault();
     setLoginError('');
     setLoading(true);
-    await checkAuth();
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
+      if (error) throw error;
+      // Login handled in App.tsx via onAuthStateChange or manual call
+      await checkAuth();
+    } catch (error: any) {
+      setLoginError(error.message);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -493,23 +506,36 @@ export default function App() {
         password: newUser.password,
         options: {
           data: {
-            name: newUser.name,
+            fullname: newUser.name,
             role: newUser.role,
             phone: newUser.phone,
-            status: 'active'
+            knowledge_level: newUser.knowledgeLevel,
+            address: newUser.address
           }
         }
       });
-      if (!error) {
-        setShowUserModal(false);
-        setNewUser({ name: '', email: '', password: '', role: 'technician', phone: '', knowledgeLevel: 'Aprendiz', address: '' });
-        fetchData();
-        alert("Usuário criado com sucesso!");
-      } else {
-        alert("Erro ao criar usuário: " + error.message);
+      if (error) throw error;
+
+      if (data.user) {
+        // Manually insert into profiles table to ensure it exists
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          email: newUser.email,
+          name: newUser.name || newUser.email.split('@')[0],
+          role: newUser.role as any,
+          phone: newUser.phone,
+          status: 'active',
+          knowledge_level: newUser.knowledgeLevel,
+          address: newUser.address
+        });
       }
+
+      setShowUserModal(false);
+      setNewUser({ name: '', email: '', password: '', role: 'technician', phone: '', knowledgeLevel: 'Aprendiz', address: '' });
+      fetchData();
+      alert("Usuário criado com sucesso!");
     } catch (error: any) {
-      alert("Erro ao criar usuário.");
+      alert("Erro ao criar usuário: " + error.message);
     }
   };
 

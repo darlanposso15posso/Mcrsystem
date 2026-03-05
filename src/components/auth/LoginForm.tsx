@@ -31,11 +31,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
     useEffect(() => {
         // Fetch logo from Supabase instead of local API
-        supabase.from('settings').select('value').eq('key', 'logo_image').maybeSingle()
-            .then(({ data }) => {
+        const fetchLogo = async () => {
+            try {
+                const { data } = await supabase.from('settings').select('value').eq('key', 'logo_image').maybeSingle();
                 if (data && data.value) setLogoUrl(data.value);
-            })
-            .catch(err => console.error("Could not load logo", err));
+            } catch (err) {
+                console.error("Could not load logo", err);
+            }
+        };
+        fetchLogo();
     }, []);
 
     const handleRoleSelection = (role: 'admin' | 'technician') => {
