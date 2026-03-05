@@ -63,7 +63,7 @@ export default function App() {
   const [showUserModal, setShowUserModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | number | null>(null);
   const [activeService, setActiveService] = useState<ServiceRecord | null>(null);
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -601,7 +601,7 @@ export default function App() {
 
       if (!error) {
         setShowServiceModal(false);
-        setSelectedClientId(null);
+        setSelectedClientId: (id: string | number) => void;
         setInspectionPhotos([]);
         setPreCleaningChecklistData({});
         fetchData();
