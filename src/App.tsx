@@ -177,10 +177,10 @@ export default function App() {
   };
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoginError('');
-    // Login logic is now mostly in checkAuth and LoginForm.
-    // This function can be simplified or used as a completion callback.
+    setLoading(true);
+    await checkAuth();
   };
 
   const handleLogout = async () => {
