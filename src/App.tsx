@@ -150,10 +150,20 @@ export default function App() {
               await supabase.auth.signOut();
               setUser(null);
               setLoginError('Sua conta ainda está pendente de aprovação pelo administrador.');
-              return;
+            } else {
+              const userData = mapProfile(profile);
+              setUser(userData);
+              fetchData(userData);
+              setLoginError('');
             }
-            const userData = mapProfile(profile);
+          } else {
+            // Build temporary profile from metadata if profile DB record not yet ready
+            const name = session.user.user_metadata?.fullname || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
+            const role = session.user.user_metadata?.role || 'technician';
+            const userData = { id: session.user.id, email: session.user.email!, name, role } as User;
             setUser(userData);
+            fetchData(userData);
+            setLoginError('');
           }
         } else {
           setUser(null);
