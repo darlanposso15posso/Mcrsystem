@@ -12,7 +12,7 @@ export enum Recurrence {
 }
 
 export interface User {
-  id: number;
+  id: string | number;
   email: string;
   name: string;
   role: 'admin' | 'technician';
@@ -24,7 +24,7 @@ export interface User {
 }
 
 export interface Client {
-  id: number;
+  id: string | number;
   name: string;
   legalName?: string;
   dba?: string;
@@ -54,8 +54,8 @@ export interface Client {
 }
 
 export interface ServiceRecord {
-  id: number;
-  clientId: number;
+  id: string | number;
+  clientId: string | number;
   restaurantName?: string;
   volume: "Low" | "Medium" | "High";
   systemType: string;

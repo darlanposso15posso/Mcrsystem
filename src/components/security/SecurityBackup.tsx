@@ -1,9 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Shield, Download, History, Database, ShieldAlert } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 const SecurityBackup: React.FC = () => {
-    const handleDownloadBackup = () => {
-        window.location.href = '/api/admin/backup';
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleDownloadBackup = async () => {
+        setIsExporting(true);
+        try {
+            // Fetch all core data for export
+            const [clientsRes, servicesRes, settingsRes] = await Promise.all([
+                supabase.from('clients').select('*'),
+                supabase.from('services').select('*'),
+                supabase.from('settings').select('*')
+            ]);
+
+            const exportData = {
+                exportedAt: new Date().toISOString(),
+                clients: clientsRes.data || [],
+                services: servicesRes.data || [],
+                settings: settingsRes.data || []
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `de_hood_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Export error:", error);
+            alert("Erro ao exportar dados.");
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -14,17 +47,18 @@ const SecurityBackup: React.FC = () => {
                     <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-500 mb-6 border border-emerald-500/20">
                         <Shield size={32} />
                     </div>
-                    <h2 className="text-3xl font-black tracking-tight mb-4">Segurança & Proteção de Dados</h2>
+                    <h2 className="text-3xl font-black tracking-tight mb-4">Segurança & Proteção de Dados (Cloud)</h2>
                     <p className="text-white/60 leading-relaxed mb-8">
-                        Seus dados são protegidos por criptografia de ponta e backups automatizados diários.
-                        Como administrador, você pode exportar a base de dados completa a qualquer momento.
+                        Seus dados agora estão hospedados no Supabase (infraestrutura AWS), protegidos por criptografia de nível bancário e backups automáticos.
+                        Como administrador, você pode exportar uma cópia de segurança em formato JSON.
                     </p>
                     <button
                         onClick={handleDownloadBackup}
-                        className="flex items-center gap-3 bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-500/20"
+                        disabled={isExporting}
+                        className="flex items-center gap-3 bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                     >
                         <Download size={20} />
-                        Baixar Backup Agora (.db)
+                        {isExporting ? 'Exportando...' : 'Exportar Dados (.json)'}
                     </button>
                 </div>
             </div>

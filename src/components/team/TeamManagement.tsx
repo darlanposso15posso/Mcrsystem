@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Edit, X, CheckCircle } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 interface TeamManagementProps {
     users: any[];
@@ -16,16 +17,20 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
 }) => {
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleApprove = async (id: number) => {
+    const handleApprove = async (id: string | number) => {
         if (!confirm("Tem certeza que deseja aprovar este técnico para acessar o aplicativo?")) return;
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/users/${id}/approve`, { method: 'PUT', credentials: 'include' });
-            if (res.ok) {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ status: 'active' })
+                .eq('id', id);
+
+            if (!error) {
                 alert("Técnico aprovado com sucesso!");
                 window.location.reload();
             } else {
-                alert("Falha ao aprovar.");
+                alert("Falha ao aprovar: " + error.message);
             }
         } catch (error) {
             console.error(error);
@@ -35,16 +40,20 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
         }
     };
 
-    const handleDelete = async (id: number, name: string) => {
+    const handleDelete = async (id: string | number, name: string) => {
         if (!confirm(`Tem certeza que deseja REVOGAR O ACESSO e EXCLUIR o técnico ${name}?`)) return;
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/users/${id}`, { method: 'DELETE', credentials: 'include' });
-            if (res.ok) {
+            const { error } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', id);
+
+            if (!error) {
                 alert("Técnico removido com sucesso!");
                 window.location.reload();
             } else {
-                alert("Falha ao remover o técnico.");
+                alert("Falha ao remover o técnico: " + error.message);
             }
         } catch (error) {
             console.error(error);

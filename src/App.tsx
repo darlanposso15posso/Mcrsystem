@@ -30,7 +30,7 @@ import CalendarView from './components/calendar/CalendarView';
 // Utils
 import { generatePDF } from './utils/pdfGenerator';
 import { supabase } from './lib/supabase';
-import { mapClient, unmapClient, mapService, unmapService } from './lib/supabaseUtils';
+import { mapClient, unmapClient, mapService, unmapService, mapProfile, mapNotification } from './lib/supabaseUtils';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -100,72 +100,61 @@ export default function App() {
   const checkAuth = async () => {
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
-
       if (error) throw error;
 
       if (session) {
-        // Garantir que a sessão do Supabase crie um cookie local
-        await fetch('/api/sync-cookie', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ access_token: session.access_token })
-        });
+        // Fetch profile from Supabase
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-        // Force admin role for the owner email
-        let role = session.user.user_metadata?.role || 'technician';
-        if (session.user.email?.toLowerCase() === 'dehoodcleaning@gmail.com') {
-          role = 'admin';
-        }
+        if (profileError) throw profileError;
 
-        const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
-
-        const statusRes = await fetch(`/api/users/status?email=${encodeURIComponent(session.user.email || '')}`);
-        if (statusRes.ok) {
-          const statusData = await statusRes.json();
-          if (statusData.status === 'pending') {
+        if (profile) {
+          if (profile.status === 'pending') {
             await supabase.auth.signOut();
             setUser(null);
             setLoginError('Sua conta ainda está pendente de aprovação pelo administrador.');
             setLoading(false);
             return;
           }
-        }
 
-        const userData = { ...session.user, role, name };
-        setUser(userData as any);
-        if (role === 'technician') {
-          setNewService(prev => ({ ...prev, technicianName: name }));
+          const userData = mapProfile(profile);
+          setUser(userData);
+          if (userData.role === 'technician') {
+            setNewService(prev => ({ ...prev, technicianName: userData.name }));
+          }
+          fetchData(userData);
+        } else {
+          // If no profile yet, build a temporary one from metadata
+          const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
+          const role = session.user.user_metadata?.role || 'technician';
+          const userData = { id: session.user.id, email: session.user.email!, name, role } as User;
+          setUser(userData);
+          fetchData(userData);
         }
-        fetchData(userData as any);
       }
 
       supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
-          await fetch('/api/sync-cookie', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ access_token: session.access_token })
-          });
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
 
-          const statusRes = await fetch(`/api/users/status?email=${encodeURIComponent(session.user.email || '')}`, { credentials: 'include' });
-          if (statusRes.ok) {
-            const statusData = await statusRes.json();
-            if (statusData.status === 'pending') {
+          if (profile) {
+            if (profile.status === 'pending') {
               await supabase.auth.signOut();
               setUser(null);
               setLoginError('Sua conta ainda está pendente de aprovação pelo administrador.');
               return;
             }
+            const userData = mapProfile(profile);
+            setUser(userData);
           }
-
-          let role = session.user.user_metadata?.role || 'technician';
-          if (session.user.email?.toLowerCase() === 'dehoodcleaning@gmail.com') {
-            role = 'admin';
-          }
-
-          const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
-          const userData = { ...session.user, role, name };
-          setUser(userData as any);
         } else {
           setUser(null);
         }
@@ -180,88 +169,8 @@ export default function App() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
-    try {
-      let localUser: any = null;
-
-      // 1. Fazer o login local via SQLite primeiro
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
-        credentials: 'include'
-      });
-
-      if (res.ok) {
-        localUser = await res.json();
-      }
-
-      // 2. Verificar o status de pending (apenas se existir localmente)
-      if (localUser) {
-        const statusRes = await fetch(`/api/users/status?email=${encodeURIComponent(localUser.email)}`, { credentials: 'include' });
-        const statusData = await statusRes.json();
-        if (statusData.status === 'pending') {
-          setLoginError('Sua conta ainda está pendente de aprovação pelo administrador.');
-          return;
-        }
-      }
-
-      // 3. Tentar fazer o Sign In no Supabase 
-      // (necessário para usuários que só existem lá, ou para atualizar sessão)
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: loginPassword,
-      });
-
-      // Se falhou em ambos
-      if (!localUser && error) {
-        setLoginError('Credenciais inválidas ou e-mail incorreto');
-        return;
-      }
-
-      // 4. Montar a sessão na UI
-      let finalUser = localUser;
-
-      // Se não tem no SQLite mas tem no Supabase, usa os dados do Supabase
-      if (!localUser && data.session) {
-        await fetch('/api/sync-cookie', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ access_token: data.session.access_token }),
-          credentials: 'include'
-        });
-
-        finalUser = {
-          id: data.session.user.id,
-          email: data.session.user.email,
-          name: data.session.user.user_metadata?.name || data.session.user.email?.split('@')[0] || 'User',
-          role: data.session.user.user_metadata?.role || 'technician'
-        };
-      }
-
-      const email = finalUser?.email?.toLowerCase() || '';
-      let role = finalUser?.role || 'technician';
-
-      // Força admin para os e-mails conhecidos de admin
-      if (email === 'dehoodcleaning@gmail.com' || email === 'admin@dehood.com') {
-        role = 'admin';
-      }
-
-      const name = finalUser?.name || 'User';
-      const userData = { ...finalUser, role, name };
-
-      // Se o usuário só existe no Supabase, precisamos forçar um cookie simulado ou ajustar a API?
-      // O middleware `/api/me` precisa do cookie 'userId'. Como mockar? 
-      // O ideal é a UI ignorar 401 do /api/me se logado via Supabase.
-
-      setUser(userData as any);
-      if (role === 'technician') {
-        setNewService(prev => ({ ...prev, technicianName: name }));
-      }
-      fetchData(userData as any);
-
-    } catch (e) {
-      setLoginError('Erro de conexão ao tentar fazer o login');
-    }
+    // Login logic is now mostly in checkAuth and LoginForm.
+    // This function can be simplified or used as a completion callback.
   };
 
   const handleLogout = async () => {
@@ -274,21 +183,13 @@ export default function App() {
     try {
       const fetchWithTimeout = (url: string) => fetch(url, { credentials: 'include' }).then(r => r.ok ? r.json() : null);
 
-      const activeServicePromise = supabase
-        .from('services')
-        .select('*')
-        .eq('status', 'IN_PROGRESS')
-        .eq('technician_name', currentUser.name)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const [clientsDataResult, servicesDataResult, activeServiceResult, settingsData, usersRes] = await Promise.all([
+      const [clientsDataResult, servicesDataResult, activeServiceResult, settingsResult, notificationsResult, profilesResult] = await Promise.all([
         supabase.from('clients').select('*'),
         supabase.from('services').select('*'),
-        activeServicePromise,
-        fetchWithTimeout('/api/settings'),
-        currentUser.role === 'admin' ? fetchWithTimeout('/api/users') : Promise.resolve(null)
+        supabase.from('services').select('*').eq('status', 'IN_PROGRESS').eq('technician_name', currentUser.name).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('settings').select('*'),
+        currentUser.role === 'admin' ? supabase.from('notifications').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+        currentUser.role === 'admin' ? supabase.from('profiles').select('*') : Promise.resolve({ data: [] })
       ]);
 
       let mappedClients: Client[] = [];
@@ -296,7 +197,6 @@ export default function App() {
 
       if (clientsDataResult.data) {
         mappedClients = clientsDataResult.data.map(mapClient);
-
         if (currentUser.role === 'technician') {
           const twentyDaysFromNow = new Date();
           twentyDaysFromNow.setDate(twentyDaysFromNow.getDate() + 20);
@@ -308,14 +208,14 @@ export default function App() {
         }
         setClients(mappedClients);
       }
+
       if (servicesDataResult.data) {
         mappedServices = servicesDataResult.data.map(mapService);
-
         if (currentUser.role === 'technician') {
           const twentyDaysFromNow = new Date();
           twentyDaysFromNow.setDate(twentyDaysFromNow.getDate() + 20);
           mappedServices = mappedServices.filter(service => {
-            if (!service.nextServiceDate) return true; // keep historical if not scheduled? actually, maybe just keep all or filter nextService
+            if (!service.nextServiceDate) return true;
             const nextService = new Date(service.nextServiceDate);
             return nextService <= twentyDaysFromNow;
           });
@@ -323,12 +223,20 @@ export default function App() {
         setServices(mappedServices);
       }
 
-      if (usersRes) {
-        setUsers(usersRes);
+      if (profilesResult.data) {
+        setUsers(profilesResult.data.map(mapProfile));
       }
 
-      if (settingsData) {
+      const settingsData: Record<string, string> = {};
+      if (settingsResult.data) {
+        settingsResult.data.forEach((s: any) => {
+          settingsData[s.key] = s.value;
+        });
         setSettings(settingsData);
+      }
+
+      if (notificationsResult.data) {
+        setNotifications(notificationsResult.data.map(mapNotification));
       }
 
       // Compute Stats locally using Supabase Data instead of SQLite
@@ -461,12 +369,21 @@ export default function App() {
       }
 
       if (currentUser.role === 'admin') {
-        const [usersData, notifData] = await Promise.all([
-          fetchWithTimeout('/api/users'),
-          fetchWithTimeout('/api/notifications')
+        const [usersRes, notifRes, settingsRes] = await Promise.all([
+          supabase.from('profiles').select('*'),
+          supabase.from('notifications').select('*'),
+          supabase.from('settings').select('*')
         ]);
-        if (usersData) setUsers(usersData);
-        if (notifData) setNotifications(notifData);
+
+        if (usersRes.data) setUsers(usersRes.data.map(mapProfile));
+        if (notifRes.data) setNotifications(notifRes.data.map(mapNotification));
+        if (settingsRes.data) {
+          const sObj: Record<string, string> = {};
+          settingsRes.data.forEach((s: any) => {
+            sObj[s.key] = s.value;
+          });
+          setSettings(sObj);
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -561,30 +478,34 @@ export default function App() {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser),
-        credentials: 'include'
+      const { data, error } = await supabase.auth.signUp({
+        email: newUser.email,
+        password: newUser.password,
+        options: {
+          data: {
+            name: newUser.name,
+            role: newUser.role,
+            phone: newUser.phone,
+            status: 'active'
+          }
+        }
       });
-      if (res.ok) {
+      if (!error) {
         setShowUserModal(false);
         setNewUser({ name: '', email: '', password: '', role: 'technician', phone: '', knowledgeLevel: 'Aprendiz', address: '' });
         fetchData();
         alert("Usuário criado com sucesso!");
       } else {
-        const errorData = await res.json();
-        alert("Erro ao criar usuário: " + (errorData.error || "Tente novamente."));
+        alert("Erro ao criar usuário: " + error.message);
       }
-    } catch (error) {
-      console.error(error);
-      alert("Erro de conexão ao criar usuário.");
+    } catch (error: any) {
+      alert("Erro ao criar usuário.");
     }
   };
 
   const handleDeleteNotification = async (id: number) => {
     try {
-      await fetch(`/api/notifications/${id}`, { method: 'DELETE' });
+      await supabase.from('notifications').delete().eq('id', id);
       fetchData();
     } catch (e) {
       console.error("Error deleting notification", e);
@@ -594,15 +515,25 @@ export default function App() {
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    const res = await fetch(`/api/users/${editingUser.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editingUser)
-    });
-    if (res.ok) {
-      setShowEditUserModal(false);
-      setEditingUser(null);
-      fetchData();
+    try {
+      const { error } = await supabase.from('profiles').update({
+        name: editingUser.name,
+        role: editingUser.role,
+        phone: editingUser.phone,
+        status: editingUser.status,
+        address: editingUser.address,
+        knowledge_level: editingUser.knowledgeLevel
+      }).eq('id', editingUser.id);
+
+      if (!error) {
+        setShowEditUserModal(false);
+        setEditingUser(null);
+        fetchData();
+      } else {
+        alert("Erro ao atualizar usuário: " + error.message);
+      }
+    } catch (e: any) {
+      alert("Erro ao atualizar usuário.");
     }
   };
 

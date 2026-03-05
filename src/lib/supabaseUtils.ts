@@ -1,4 +1,4 @@
-import { Client, ServiceRecord } from '../types';
+import { Client, ServiceRecord, User } from '../types';
 
 export const mapClient = (c: any): Client => ({
     id: c.id,
@@ -105,4 +105,28 @@ export const unmapService = (s: Partial<ServiceRecord>): any => ({
     completion_checklist_after: s.completionChecklistAfter,
     pre_cleaning_checklist: s.preCleaningChecklist,
     status: s.status,
+});
+
+export const mapProfile = (p: any): User => ({
+    id: p.id,
+    email: p.email,
+    name: p.name,
+    role: p.role,
+    phone: p.phone,
+    knowledgeLevel: p.knowledge_level,
+    address: p.address,
+    status: p.status,
+    joinDate: p.created_at,
+});
+
+export const mapSetting = (s: any) => ({
+    key: s.key,
+    value: s.value,
+});
+
+export const mapNotification = (n: any) => ({
+    id: n.id,
+    message: n.message,
+    isRead: n.is_read,
+    createdAt: n.created_at,
 });

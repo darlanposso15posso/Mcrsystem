@@ -30,15 +30,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
     const [logoUrl, setLogoUrl] = useState("https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl");
 
     useEffect(() => {
-        fetch('/api/settings/public')
-            .then(res => res.json())
-            .then(data => {
-                if (data.logo_image) setLogoUrl(data.logo_image);
+        // Fetch logo from Supabase instead of local API
+        supabase.from('settings').select('value').eq('key', 'logo_image').maybeSingle()
+            .then(({ data }) => {
+                if (data && data.value) setLogoUrl(data.value);
             })
             .catch(err => console.error("Could not load logo", err));
     }, []);
-
-
 
     const handleRoleSelection = (role: 'admin' | 'technician') => {
         setSelectedRole(role);
@@ -61,31 +59,33 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
         setIsLoading(true);
         try {
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: registerName,
-                    email: loginEmail,
-                    password: loginPassword,
-                    phone: registerPhone
-                })
+            // Register via Supabase Auth
+            const { data, error } = await supabase.auth.signUp({
+                email: loginEmail,
+                password: loginPassword,
+                options: {
+                    data: {
+                        name: registerName,
+                        role: 'technician',
+                        phone: registerPhone
+                    }
+                }
             });
 
-            const data = await res.json();
+            if (error) throw error;
 
-            if (res.ok) {
+            if (data.user) {
+                // The trigger in Supabase should handle creating the profile
+                // but we can show the success message
                 setSuccessMessage('Cadastro enviado! Aguarde a aprovação do administrador para acessar o sistema.');
                 setIsRegistering(false);
                 setLoginEmail('');
                 setLoginPassword('');
                 setRegisterName('');
                 setRegisterPhone('');
-            } else {
-                setLocalError(data.error || 'Erro ao realizar o cadastro. Tente novamente.');
             }
-        } catch (error) {
-            setLocalError('Erro de conexão com o servidor local');
+        } catch (error: any) {
+            setLocalError(error.message || 'Erro ao realizar o cadastro. Tente novamente.');
         } finally {
             setIsLoading(false);
         }
@@ -103,9 +103,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
         setIsLoading(true);
 
         try {
-            await handleLogin(e);
-        } catch (error) {
-            setLocalError('Erro no servidor.');
+            // Direct Supabase Login
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: loginEmail,
+                password: loginPassword,
+            });
+
+            if (error) throw error;
+
+            // Login handled in App.tsx via onAuthStateChange or manual call
+            handleLogin(e);
+        } catch (error: any) {
+            setLocalError(error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : error.message);
         } finally {
             setIsLoading(false);
         }

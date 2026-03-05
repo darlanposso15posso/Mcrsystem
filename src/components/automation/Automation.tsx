@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Clock, Send, Zap, Settings, MessageCircle, Key, Phone, Image as ImageIcon, CheckSquare } from 'lucide-react';
 import { PRE_CLEANING_CATEGORIES, MANDATORY_PRE_CLEANING_CHECKLIST } from '../../utils/preCleaningChecklist';
+import { supabase } from '../../lib/supabase';
 
 interface AutomationProps {
     settings: Record<string, string>;
@@ -47,14 +48,15 @@ const Automation: React.FC<AutomationProps> = ({ settings, fetchData }) => {
     const handleSaveSettings = async (key: string, value: string) => {
         setIsSaving(true);
         try {
-            await fetch(`/api/settings/${key}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ value })
-            });
+            const { error } = await supabase
+                .from('settings')
+                .upsert({ key, value }, { onConflict: 'key' });
+
+            if (error) throw error;
             await fetchData();
         } catch (error) {
             console.error("Error saving setting:", error);
+            alert("Erro ao salvar configuração.");
         } finally {
             setIsSaving(false);
         }

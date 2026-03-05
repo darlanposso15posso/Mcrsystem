@@ -7,19 +7,21 @@ import { calculateDuration, formatDate, formatTime, formatDateTime } from './tim
 const getBase64ImageFromUrl = async (imageUrl: string): Promise<string | null> => {
   if (!imageUrl) return null;
 
-  // Se já for uma string base64, retorna diretamente
   if (imageUrl.startsWith('data:image/')) {
     return imageUrl;
   }
 
   try {
-    const res = await fetch(`/api/proxy-image?url=${encodeURIComponent(imageUrl)}`, {
-      credentials: 'include'
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
     });
-    if (!res.ok) throw new Error("Proxy fetch failed");
-    const base64 = await res.text();
-    return base64;
   } catch (error) {
+    console.warn("Direct fetch failed, likely CORS:", error);
     return null;
   }
 };
