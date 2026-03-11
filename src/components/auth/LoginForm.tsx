@@ -33,6 +33,122 @@ const LoginForm: React.FC<LoginFormProps> = ({
     const [logoUrl, setLogoUrl] = useState("/mcr-logo.png");
     const [invitationCompany, setInvitationCompany] = useState<{ id: string, name: string } | null>(null);
 
+    useEffect(() => {
+        // Check for invitation link
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteCompanyId = urlParams.get('invite');
+        const inviteRole = urlParams.get('role');
+
+        if (inviteCompanyId && inviteRole === 'technician') {
+            handleRoleSelection('technician');
+            setIsRegistering(true);
+            fetchInvitingCompany(inviteCompanyId);
+        }
+    }, []);
+
+    const fetchInvitingCompany = async (id: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('companies')
+                .select('id, name')
+                .eq('id', id)
+                .single();
+            
+            if (data && !error) {
+                setInvitationCompany(data);
+            }
+        } catch (err) {
+            console.error("Error fetching company from invite:", err);
+        }
+    };
+
+    const handleRoleSelection = (role: 'admin' | 'technician') => {
+        setSelectedRole(role);
+        setLoginEmail(''); // clear email field
+        setLoginPassword(''); // clear password field
+        setLocalError('');
+        setSuccessMessage('');
+        setIsRegistering(false);
+    };
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLocalError('');
+        setSuccessMessage('');
+
+        if (loginPassword.length < 6) {
+            setLocalError('A senha deve ter no mínimo 6 caracteres');
+            return;
+        }
+
+        if (selectedRole === 'admin' && !companyName.trim()) {
+            setLocalError('O nome da empresa é obrigatório para novos administradores');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email: loginEmail,
+                password: loginPassword,
+                options: {
+                    data: {
+                        name: registerName,
+                        role: selectedRole,
+                        phone: registerPhone,
+                        company_name: selectedRole === 'admin' ? companyName : undefined,
+                        company_id: selectedRole === 'technician' ? invitationCompany?.id : undefined,
+                        is_new_company: selectedRole === 'admin'
+                    }
+                }
+            });
+
+            if (error) throw error;
+
+            if (data.user) {
+                setSuccessMessage('Cadastro enviado! Aguarde a aprovação do administrador para acessar o sistema.');
+                setIsRegistering(false);
+                setLoginEmail('');
+                setLoginPassword('');
+                setRegisterName('');
+                setRegisterPhone('');
+            }
+        } catch (error: any) {
+            setLocalError(error.message || 'Erro ao realizar o cadastro. Tente novamente.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleLocalLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLocalError('');
+
+        setIsLoading(true);
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: loginEmail,
+                password: loginPassword,
+            });
+
+            if (error) throw error;
+            if (!data.user) throw new Error('Falha na autenticação: Usuário não retornado');
+
+            await handleLogin(e);
+        } catch (error: any) {
+            console.error("Login Error:", error);
+            let msg = error.message;
+            if (msg === 'Invalid login credentials') msg = 'E-mail ou senha incorretos';
+            if (msg === 'Email not confirmed') msg = 'E-mail ainda não confirmado.';
+            setLocalError(msg);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const displayError = loginError || localError;
+
     return (
         <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden">
             {/* Background Decoration */}
