@@ -429,17 +429,21 @@ function App() {
 
         <main className="flex-1 overflow-y-auto hud-grid hud-scanline">
           {/* Mobile Header */}
-          <div className="md:hidden flex items-center justify-between p-4 bg-[var(--card-color)] border-b border-[var(--border-muted)] shadow-sm">
-            <img
-              src={settings?.logo_image || 'https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl'}
-              alt="D&E Logo"
-              className="h-10 object-contain"
-              referrerPolicy="no-referrer"
-              onError={e => (e.currentTarget.style.display = 'none')}
-            />
+          <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 shadow-sm">
+            <div className="flex items-center gap-2">
+              <img
+                src={settings?.logo_image || 'https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl'}
+                alt="Company Logo"
+                className="h-8 w-auto object-contain"
+                referrerPolicy="no-referrer"
+                onError={e => (e.currentTarget.style.display = 'none')}
+              />
+              <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
+              <img src="/mcr-logo.png" alt="MCR Logo" className="h-6 w-auto" />
+            </div>
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 bg-slate-900/5 hover:bg-slate-900/10 text-[#111827] rounded-lg transition-all"
+              className="p-2 bg-slate-900/5 hover:bg-slate-900/10 text-slate-900 rounded-lg transition-all"
             >
               <Menu size={24} />
             </button>

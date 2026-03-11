@@ -146,7 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                     )}
                 </nav>
 
-                <div className="px-4 py-6 space-y-2 border-t border-slate-800 bg-black/20">
+                <div className="px-4 py-6 space-y-4 border-t border-slate-800 bg-black/20">
                     {user.role === 'admin' && (
                         <button
                             onClick={() => handleNavClick('admin_settings')}
@@ -156,6 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                             <span className="text-[10px] font-black uppercase tracking-widest">{t.admin_settings}</span>
                         </button>
                     )}
+                    
                     <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-none text-red-500/60 hover:text-red-400 hover:bg-red-500/5 transition-all text-[10px] font-black uppercase tracking-widest"
@@ -163,6 +164,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                         <LogOut size={20} />
                         <span>{t.logout}</span>
                     </button>
+
+                    <div className="pt-4 border-t border-white/5 flex flex-col items-center gap-2 opacity-40 hover:opacity-100 transition-opacity">
+                        <img src="/mcr-logo.png" alt="MCR Logo" className="h-5 w-auto" />
+                        <span className="text-[8px] font-black uppercase tracking-tighter text-slate-400">Powered by MCR Platform</span>
+                    </div>
                 </div>
             </aside>
         </>

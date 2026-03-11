@@ -243,11 +243,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
             <footer className="bg-white text-slate-500 py-16 text-center border-t border-slate-200">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex justify-center items-center gap-3 mb-6">
-                        <img src={logoUrl} alt="Logo" className="h-8 w-auto grayscale opacity-50" />
-                        <span className="font-extrabold text-slate-900 tracking-widest uppercase text-sm italic">MCR Compliance</span>
+                        <img src={logoUrl} alt="Logo" className="h-10 w-auto" />
+                        <span className="font-extrabold text-slate-900 tracking-widest uppercase text-sm italic">MCR Platform Authority</span>
                     </div>
                     <p className="text-xs font-bold uppercase tracking-widest opacity-40">
                         © {new Date().getFullYear()} MCR - Management, Compliance & Reports. 
+                        <br />
+                        Plataforma Oficial de Gestão de Conformidade
                         <br />
                         <a href="https://mcrsystem.online" className="hover:text-blue-600 transition-colors">mcrsystem.online</a>
                     </p>
