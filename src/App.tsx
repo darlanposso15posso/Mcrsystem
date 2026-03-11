@@ -159,7 +159,30 @@ function App() {
   });
 
   useEffect(() => {
-    // Auth Listener
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          
+          if (profile) {
+            setUser(mapProfile(profile));
+            setIsLoggingIn(false);
+          }
+        }
+      } catch (err) {
+        console.error("Auth init error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const { data: profile } = await supabase
@@ -169,8 +192,7 @@ function App() {
           .maybeSingle();
         
         if (profile) {
-          const mapped = mapProfile(profile);
-          setUser(mapped);
+          setUser(mapProfile(profile));
           setIsLoggingIn(false);
         }
       } else {
