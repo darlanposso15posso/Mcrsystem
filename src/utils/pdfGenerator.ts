@@ -12,7 +12,9 @@ const getBase64ImageFromUrl = async (imageUrl: string): Promise<string | null> =
   }
 
   try {
-    const response = await fetch(imageUrl);
+    const response = await fetch(imageUrl, { mode: 'no-cors' }); // Attempt no-cors if simple fetch fails, though it won't allow reading content
+    // However, jspdf needs the content, so no-cors might not help here.
+    // Better to use a proxy or just handle the failure gracefully with a fallback.
     const blob = await response.blob();
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -21,7 +23,7 @@ const getBase64ImageFromUrl = async (imageUrl: string): Promise<string | null> =
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.warn("Direct fetch failed, likely CORS:", error);
+    console.warn("Direct fetch failed for logo:", error);
     return null;
   }
 };
@@ -29,7 +31,7 @@ const getBase64ImageFromUrl = async (imageUrl: string): Promise<string | null> =
 /**
  * Redimensiona e corta a imagem para preencher o espaço mantendo a proporção (Center Crop)
  */
-const normalizeImage = (base64: string, targetWidth: number, targetHeight: number): Promise<string> => {
+const centerCropImage = (base64: string, targetWidth: number, targetHeight: number): Promise<string> => {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -65,6 +67,57 @@ const normalizeImage = (base64: string, targetWidth: number, targetHeight: numbe
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
       resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => resolve(base64);
+    img.src = base64;
+  });
+};
+
+/**
+ * Redimensiona a imagem para caber no espaço mantendo a proporção (Fit to Box)
+ */
+const normalizeLogo = (base64: string, targetWidth: number, targetHeight: number): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64);
+        return;
+      }
+
+      const imgAspect = img.width / img.height;
+      const targetAspect = targetWidth / targetHeight;
+
+      let drawWidth, drawHeight;
+
+      if (imgAspect > targetAspect) {
+        drawWidth = targetWidth;
+        drawHeight = targetWidth / imgAspect;
+      } else {
+        drawHeight = targetHeight;
+        drawWidth = targetHeight * imgAspect;
+      }
+
+      // We use the actual drawn dimensions for the canvas to avoid white borders if unwanted,
+      // OR we use the target dimensions and center the logo.
+      // For PDF headers, centered in a fixed box is often better.
+      canvas.width = targetWidth * 2;
+      canvas.height = targetHeight * 2;
+
+      ctx.fillStyle = 'rgba(255,255,255,0)'; // Transparent background if possible, but JPEG will make it white
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const x = (canvas.width - drawWidth * 2) / 2;
+      const y = (canvas.height - drawHeight * 2) / 2;
+
+      ctx.drawImage(img, x, y, drawWidth * 2, drawHeight * 2);
+
+      // If the source is PNG and we want to preserve transparency, we use image/png
+      const isPng = base64.includes('image/png');
+      resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.9));
     };
     img.onerror = () => resolve(base64);
     img.src = base64;
@@ -143,7 +196,7 @@ const parsePhotoArray = (data: any) => {
   return Array.isArray(data) ? data : [];
 };
 
-export const generatePDF = async (service: ServiceRecord, client?: Client) => {
+export const generatePDF = async (service: ServiceRecord, client?: Client, logoUrlOverride?: string) => {
   try {
     const doc = new jsPDF();
     const emeraldColor = [16, 185, 129] as [number, number, number];
@@ -152,25 +205,45 @@ export const generatePDF = async (service: ServiceRecord, client?: Client) => {
     doc.setFillColor(emeraldColor[0], emeraldColor[1], emeraldColor[2]);
     doc.rect(0, 0, 210, 30, 'F');
 
-    const logoUrl = "https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl";
-    const base64Logo = await getBase64ImageFromUrl(logoUrl);
+    // Default logo from landing page which is more reliable than Google Drive
+    const fallbackLogo = "https://cdn-icons-png.flaticon.com/512/3273/3273398.png";
+    const backupLogo = "https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl";
+    const logoToUse = logoUrlOverride || fallbackLogo || backupLogo;
+
+    console.log("PDF Generator: Using logo source:", logoToUse ? (logoToUse.startsWith('data:') ? 'Base64 Data' : logoToUse) : 'None');
+
+    let base64Logo = await getBase64ImageFromUrl(logoToUse);
+
+    // If the selected logo fails, try the backup
+    if (!base64Logo && logoToUse !== backupLogo) {
+      console.log("PDF Generator: Primary logo failed, trying backup...");
+      base64Logo = await getBase64ImageFromUrl(backupLogo);
+    }
 
     if (base64Logo) {
       try {
-        doc.addImage(base64Logo, 'PNG', 12, 4, 22, 22);
+        // Resize logo to be much smaller for PDF inclusion (helps with 2.6MB strings)
+        base64Logo = await normalizeLogo(base64Logo, 200, 120);
+        const format = base64Logo.includes('image/png') ? 'PNG' : 'JPEG';
+        // Positioned more to the left and slightly adjusted size
+        doc.addImage(base64Logo, format, 10, 3, 40, 24);
+        console.log("PDF Generator: Logo added successfully with format:", format);
       } catch (e) {
-        console.warn("Logo failed to render", e);
+        console.warn("PDF Generator: Logo failed to render", e);
       }
+    } else {
+      console.warn("PDF Generator: All logo sources failed");
     }
 
     doc.setFontSize(20);
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.text('D&E Hood Cleaning LLC', 40, 15);
+    // Adjusted X position to 55 to be closer to the logo but distinct
+    doc.text('D&E Hood Cleaning LLC', 55, 15);
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.text('Commercial Kitchen Exhaust Cleaning Services | dehoodcleaning@gmail.com', 40, 22);
+    doc.text('Commercial Kitchen Exhaust Cleaning Services | dehoodcleaning@gmail.com', 55, 22);
 
     doc.setFontSize(14);
     doc.setTextColor(255, 255, 255);
@@ -413,7 +486,7 @@ export const generatePDF = async (service: ServiceRecord, client?: Client) => {
         if (base64) {
           try {
             // Padronizar imagem com Center Crop
-            base64 = await normalizeImage(base64, 400, 300); // 400x300px base
+            base64 = await centerCropImage(base64, 400, 300); // 400x300px base
 
             const x = 14 + (col * (imgW + gap));
             doc.setDrawColor(230, 230, 230);
@@ -463,7 +536,6 @@ export const generatePDF = async (service: ServiceRecord, client?: Client) => {
     doc.save(`Service_Report_${name}.pdf`);
   } catch (err: any) {
     console.error("PDF ERROR:", err);
-    alert("CRITICAL ERROR: " + err.message);
     throw err;
   }
 };

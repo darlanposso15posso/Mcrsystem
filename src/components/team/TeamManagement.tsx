@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, X, CheckCircle } from 'lucide-react';
+import { Plus, Edit, X, CheckCircle, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface TeamManagementProps {
@@ -7,105 +7,109 @@ interface TeamManagementProps {
     setShowUserModal: (show: boolean) => void;
     setEditingUser: (user: any) => void;
     setShowEditUserModal: (show: boolean) => void;
+    showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+    confirmAction: (message: string, onConfirm: () => void, onCancel?: () => void) => void;
 }
 
 const TeamManagement: React.FC<TeamManagementProps> = ({
     users,
     setShowUserModal,
     setEditingUser,
-    setShowEditUserModal
+    setShowEditUserModal,
+    showToast,
+    confirmAction
 }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleApprove = async (id: string | number) => {
-        if (!confirm("Tem certeza que deseja aprovar este técnico para acessar o aplicativo?")) return;
-        setIsLoading(true);
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ status: 'active' })
-                .eq('id', id);
+        confirmAction("Tem certeza que deseja aprovar este técnico para acessar o aplicativo?", async () => {
+            setIsLoading(true);
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ status: 'active' })
+                    .eq('id', id);
 
-            if (!error) {
-                alert("Técnico aprovado com sucesso!");
-                window.location.reload();
-            } else {
-                alert("Falha ao aprovar: " + error.message);
+                if (!error) {
+                    showToast("Técnico aprovado com sucesso!");
+                    window.location.reload();
+                } else {
+                    showToast("Falha ao aprovar: " + error.message, 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Erro na comunicação com o servidor.", 'error');
+            } finally {
+                setIsLoading(false);
             }
-        } catch (error) {
-            console.error(error);
-            alert("Erro na comunicação com o servidor.");
-        } finally {
-            setIsLoading(false);
-        }
+        });
     };
 
     const handleDelete = async (id: string | number, name: string) => {
-        if (!confirm(`Tem certeza que deseja REVOGAR O ACESSO e EXCLUIR o técnico ${name}?`)) return;
-        setIsLoading(true);
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .delete()
-                .eq('id', id);
+        confirmAction(`Tem certeza que deseja REVOGAR O ACESSO e EXCLUIR o técnico ${name}?`, async () => {
+            setIsLoading(true);
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .delete()
+                    .eq('id', id);
 
-            if (!error) {
-                alert("Técnico removido com sucesso!");
-                window.location.reload();
-            } else {
-                alert("Falha ao remover o técnico: " + error.message);
+                if (!error) {
+                    showToast("Técnico removido com sucesso!");
+                    window.location.reload();
+                } else {
+                    showToast("Falha ao remover o técnico: " + error.message, 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Erro na comunicação com o servidor.", 'error');
+            } finally {
+                setIsLoading(false);
             }
-        } catch (error) {
-            console.error(error);
-            alert("Erro na comunicação com o servidor.");
-        } finally {
-            setIsLoading(false);
-        }
+        });
     };
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">Gestão de Equipe</h2>
+            <div className="flex justify-between items-center bg-[var(--bg-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl relative overflow-hidden emerald-glow">
+                <div className="relative z-10 text-white">
+                    <h2 className="text-3xl font-black mb-2 text-white uppercase italic tracking-tighter">Membros & Operações</h2>
+                    <p className="text-[var(--text-muted)] max-w-xl text-sm font-bold uppercase tracking-widest leading-relaxed">
+                        Controle total sobre a força de trabalho. Gerencie acessos, aprove novos ingressos e monitore o desempenho da equipe.
+                    </p>
+                </div>
+                <Users size={120} className="absolute right-0 top-0 opacity-5 -translate-y-4 translate-x-4 text-emerald-500" />
+            </div>
+
+            {/* Legacy Fallback Table for historical DB profiles */}
+            <div className="flex justify-between items-center mt-6 mb-4">
+                <h3 className="text-xl font-black text-white uppercase italic tracking-tight">Perfis de Acesso Master</h3>
                 <button
                     onClick={() => setShowUserModal(true)}
-                    className="bg-emerald-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+                    className="bg-emerald-500 text-[var(--bg-color)] px-6 py-2 rounded-none font-black flex items-center gap-2 shadow-lg shadow-emerald-500/20 uppercase tracking-widest text-xs emerald-glow hover:bg-emerald-400 transition-all"
                 >
-                    <Plus size={18} /> Novo Técnico
+                    <Plus size={18} /> Novo Acesso Manual
                 </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-black/5 shadow-sm overflow-hidden">
+            <div className="bg-[var(--card-color)] rounded-none border border-[var(--border-muted)] shadow-sm overflow-hidden emerald-glow-hover transition-all">
                 <table className="w-full text-left">
                     <thead>
-                        <tr className="bg-black/5 text-black/40 text-xs uppercase font-bold tracking-wider">
-                            <th className="px-6 py-4">Técnico</th>
-                            <th className="px-6 py-4">Nível</th>
-                            <th className="px-6 py-4">Contato</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4">Cargo</th>
-                            <th className="px-6 py-4">Ações</th>
+                        <tr className="bg-[var(--card-alt-color)] text-[var(--text-muted)] text-[10px] uppercase font-black tracking-widest">
+                            <th className="px-6 py-5">Identidade do Membro</th>
+                            <th className="px-6 py-5">Especialidade</th>
+                            <th className="px-6 py-5">Conexão</th>
+                            <th className="px-6 py-5">Integridade</th>
+                            <th className="px-6 py-5">Nível de Acesso</th>
+                            <th className="px-6 py-5">Comandos</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-black/5">
+                    <tbody className="divide-y divide-white/5">
                         {users.map((u) => (
                             <tr key={u.id} className="hover:bg-black/[0.02] transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="font-bold">{u.name}</div>
                                     <div className="text-xs text-black/40">{u.email}</div>
-                                    {u.rawPassword && (
-                                        <div className="mt-1 flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-black/40 uppercase">Senha:</span>
-                                            <div className="relative group cursor-pointer" title="Clique e segure para ver a senha">
-                                                <div className="text-xs font-mono bg-black/5 px-2 py-0.5 rounded text-black/60 opacity-100 group-active:opacity-0 transition-opacity absolute inset-0 flex items-center justify-center">
-                                                    ••••••••
-                                                </div>
-                                                <div className="text-xs font-mono bg-amber-100 text-amber-800 px-2 py-0.5 rounded opacity-0 group-active:opacity-100 transition-opacity select-all">
-                                                    {u.rawPassword}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
                                 </td>
                                 <td className="px-6 py-4">
                                     {u.role === 'technician' && (

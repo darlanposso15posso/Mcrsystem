@@ -4,6 +4,13 @@ export enum ServiceStatus {
   OVERDUE = "OVERDUE",
 }
 
+export enum LeadStatus {
+  NEW = "New",
+  CONTACTED = "Contacted",
+  FOLLOW_UP = "Follow-up",
+  CONVERTED = "Converted",
+}
+
 export enum Recurrence {
   MONTHLY = "MONTHLY",
   QUARTERLY = "QUARTERLY",
@@ -16,6 +23,7 @@ export interface User {
   email: string;
   name: string;
   role: 'admin' | 'technician';
+  companyId?: string;
   phone?: string;
   knowledgeLevel?: string;
   address?: string;
@@ -51,6 +59,7 @@ export interface Client {
   cleaningPrice?: number;
   lat?: number;
   lng?: number;
+  companyId: string;  // required — enforced by RLS
 }
 
 export interface ServiceRecord {
@@ -68,15 +77,15 @@ export interface ServiceRecord {
   nfpaCompliance: boolean;
   reportNumber: string;
   notes?: string;
-  // New Inspection Fields
   inspectionStartTime?: string;
-  inspectionPhotosBefore?: string; // JSON array of 6 photo URLs/placeholders
-  inspectionChecklistBefore?: string; // JSON object
+  inspectionPhotosBefore?: string;
+  inspectionChecklistBefore?: string;
   completionTime?: string;
-  completionPhotosAfter?: string; // JSON array
-  completionChecklistAfter?: string; // JSON object
-  preCleaningChecklist?: string;     // JSON object for Pre-Cleaning Inspection
+  completionPhotosAfter?: string;
+  completionChecklistAfter?: string;
+  preCleaningChecklist?: string;
   status: 'IN_PROGRESS' | 'COMPLETED';
+  companyId?: string;  // present after fetch, injected on insert
 }
 
 export interface DashboardStats {
@@ -88,4 +97,18 @@ export interface DashboardStats {
   nfpaRate?: number;
   establishmentCounts?: { name: string; value: number }[];
   monthlyTrends?: { name: string; total: number }[];
+}
+
+export interface Lead {
+  id: string | number;
+  name: string;
+  contactName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  status: LeadStatus | string;
+  lastContactDate?: string;
+  notes?: string;
+  companyId: string;
+  createdAt: string;
 }

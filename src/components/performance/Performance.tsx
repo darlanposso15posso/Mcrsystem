@@ -37,16 +37,11 @@ const Performance: React.FC<PerformanceProps> = ({ users, services }) => {
 
         completed.forEach(s => {
             if (!clientData[s.clientId]) {
-                // Find client price (fallback to 0) => the API doesn't return cleaningPrice in services, 
-                // but we might need to either mock it or extract if it's there. 
-                // Assuming we don't have price inside service object natively yet without fetching clients, 
-                // we'll display what we can, or just show execution times if price is missing in this context.
-                // Wait, Performance receives 'services' but not 'clients'. Let's just calculate average time for now.
                 clientData[s.clientId] = {
                     name: s.restaurantName || `Cliente ${s.clientId}`,
                     totalHours: 0,
                     count: 0,
-                    price: 0 // We'll just show time for now since cleaningPrice is not in the service payload
+                    price: 0
                 };
             }
             clientData[s.clientId].totalHours += calculateDurationHours(s.inspectionStartTime, s.completionTime);
@@ -65,27 +60,43 @@ const Performance: React.FC<PerformanceProps> = ({ users, services }) => {
 
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-black tracking-tight">Desempenho da Equipe</h2>
+            <div className="flex justify-between items-center bg-[var(--card-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl blue-glow">
+                <div>
+                    <h2 className="text-3xl font-black tracking-tight text-white uppercase italic">Análise de Performance</h2>
+                    <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest mt-1">Métricas operacionais e eficiência técnica da força de trabalho.</p>
+                </div>
+                <div className="p-4 bg-blue-500 text-[var(--bg-color)] rounded-none shadow-lg shadow-blue-500/20">
+                    <TrendingUp size={32} />
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
-                        <h3 className="text-xl font-bold mb-8">Serviços por Técnico</h3>
-                        <div className="h-80">
+                    <div className="bg-[var(--card-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl blue-glow flex flex-col h-full">
+                        <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest mb-8 border-b border-[var(--border-muted)] pb-2">Volume Operacional por Técnico</h3>
+                        <div className="h-80 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={techStats}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                                    <YAxis axisLine={false} tickLine={false} />
-                                    <Tooltip
-                                        cursor={{ fill: 'transparent' }}
-                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                    <XAxis
+                                        dataKey="name"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 'bold' }}
                                     />
-                                    <Legend iconType="circle" />
-                                    <Bar name="Conforme" dataKey="compliant" fill="#10b981" radius={[10, 10, 0, 0]} />
-                                    <Bar name="Não Conforme" dataKey="nonCompliant" fill="#ef4444" radius={[10, 10, 0, 0]} />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 'bold' }}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                        contentStyle={{ backgroundColor: 'var(--bg-color)', borderRadius: '0px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.5)' }}
+                                        itemStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
+                                    />
+                                    <Legend iconType="rect" wrapperStyle={{ paddingTop: '20px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }} />
+                                    <Bar name="Conforme" dataKey="compliant" fill="#3b82f6" radius={[0, 0, 0, 0]} />
+                                    <Bar name="Não Conforme" dataKey="nonCompliant" fill="#ef4444" radius={[0, 0, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -93,29 +104,29 @@ const Performance: React.FC<PerformanceProps> = ({ users, services }) => {
                 </div>
 
                 <div className="space-y-8">
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
-                        <h3 className="text-xl font-bold mb-6">Métricas de Qualidade</h3>
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
-                                    <TrendingUp size={20} />
+                    <div className="bg-[var(--card-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl blue-glow">
+                        <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest mb-8 border-b border-[var(--border-muted)] pb-2">KPIs de Qualidade</h3>
+                        <div className="space-y-10">
+                            <div className="flex items-center gap-5">
+                                <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-none flex items-center justify-center text-blue-500">
+                                    <TrendingUp size={24} />
                                 </div>
                                 <div>
-                                    <div className="text-sm font-bold">Taxa de Conformidade</div>
-                                    <div className="text-2xl font-black">
+                                    <div className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Conformidade NFPA</div>
+                                    <div className="text-3xl font-black text-blue-500 italic">
                                         {services.length > 0
                                             ? Math.round((services.filter(s => s.nfpaCompliance).length / services.length) * 100)
                                             : 0}%
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
-                                    <UserCheck size={20} />
+                            <div className="flex items-center gap-5">
+                                <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-none flex items-center justify-center text-blue-500">
+                                    <UserCheck size={24} />
                                 </div>
                                 <div>
-                                    <div className="text-sm font-bold">Média Mensal / Técnico</div>
-                                    <div className="text-2xl font-black">
+                                    <div className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Média Produtiva</div>
+                                    <div className="text-3xl font-black text-blue-500 italic">
                                         {techStats.length > 0
                                             ? (services.length / techStats.length).toFixed(1)
                                             : 0}
@@ -125,53 +136,54 @@ const Performance: React.FC<PerformanceProps> = ({ users, services }) => {
                         </div>
                     </div>
 
-                    <div className="bg-emerald-500 p-8 rounded-[2.5rem] text-white overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-                        <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                            <Star size={18} fill="currentColor" />
-                            Destaque do Mês
+                    <div className="bg-blue-500 p-8 rounded-none text-[var(--bg-color)] overflow-hidden relative blue-glow">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-none -mr-16 -mt-16 blur-3xl"></div>
+                        <h3 className="text-[10px] font-black mb-4 flex items-center gap-2 uppercase tracking-widest border-b border-[var(--bg-color)]/10 pb-1">
+                            <Star size={14} fill="currentColor" />
+                            Operador de Elite
                         </h3>
                         {techStats.length > 0 ? (
                             <div className="mt-4">
-                                <div className="text-2xl font-black">{techStats.sort((a, b) => b.total - a.total)[0].name}</div>
-                                <div className="text-white/60 text-xs font-bold uppercase tracking-widest mt-1">
-                                    {techStats.sort((a, b) => b.total - a.total)[0].total} Serviços Concluídos
+                                <div className="text-3xl font-black uppercase italic tracking-tighter leading-none">{techStats.sort((a, b) => b.total - a.total)[0].name}</div>
+                                <div className="text-[var(--bg-color)]/60 text-[10px] font-black uppercase tracking-widest mt-2">
+                                    {techStats.sort((a, b) => b.total - a.total)[0].total} Operações Concluídas
                                 </div>
                             </div>
                         ) : (
-                            <div className="mt-4 text-white/40 italic">Sem dados suficientes</div>
+                            <div className="mt-4 text-[var(--bg-color)]/40 italic font-bold">Aguardando dados...</div>
                         )}
                     </div>
                 </div>
             </div>
-            <div className="bg-white p-8 rounded-[2.5rem] border border-black/5 shadow-sm mt-8">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold flex items-center gap-2">
-                        <Clock className="text-amber-500" />
-                        Análise de Tempo de Execução (Restaurantes mais demorados)
+
+            <div className="bg-[var(--card-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl mt-8 blue-glow">
+                <div className="flex justify-between items-center mb-8 border-b border-[var(--border-muted)] pb-2">
+                    <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest flex items-center gap-3">
+                        <Clock className="text-blue-500" />
+                        Logística de Tempo (Top 5 Gargalos)
                     </h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-black/5 text-black/40 text-xs uppercase font-bold tracking-wider">
-                                <th className="px-6 py-4 rounded-l-xl">Restaurante</th>
-                                <th className="px-6 py-4">Serviços Analisados</th>
-                                <th className="px-6 py-4 rounded-r-xl">Tempo Médio (Horas)</th>
+                            <tr className="bg-[var(--card-alt-color)] text-[var(--text-muted)] text-[10px] uppercase font-black tracking-widest">
+                                <th className="px-6 py-5 border-[var(--border-muted)]">Unidade de Serviço</th>
+                                <th className="px-6 py-5 border-[var(--border-muted)]">Amostragem</th>
+                                <th className="px-6 py-5 border-[var(--border-muted)]">Duração Média</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-black/5">
+                        <tbody className="divide-y divide-white/5">
                             {profitabilityStats.length > 0 ? (
                                 profitabilityStats.map((stat, i) => (
-                                    <tr key={i} className="hover:bg-black/[0.02]">
-                                        <td className="px-6 py-4 font-bold">{stat.name}</td>
-                                        <td className="px-6 py-4 text-black/60 font-mono">{stat.count}</td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className="text-amber-600 font-bold font-mono text-lg">{stat.avgHours.toFixed(1)}h</div>
-                                                <div className="w-24 h-2 bg-black/5 rounded-full overflow-hidden">
+                                    <tr key={i} className="hover:bg-white/[0.03] transition-colors">
+                                        <td className="px-6 py-6 font-black text-white uppercase italic tracking-tight">{stat.name}</td>
+                                        <td className="px-6 py-6 text-[var(--text-muted)] font-black text-xs">{stat.count} Intervenções</td>
+                                        <td className="px-6 py-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-blue-500 font-black text-xl italic">{stat.avgHours.toFixed(1)}h</div>
+                                                <div className="flex-1 max-w-[200px] h-1.5 bg-[var(--card-alt-color)] rounded-none overflow-hidden">
                                                     <div
-                                                        className="h-full bg-amber-500 rounded-full"
+                                                        className="h-full bg-blue-500 shadow-lg shadow-blue-500/20"
                                                         style={{ width: `${Math.min((stat.avgHours / 5) * 100, 100)}%` }}
                                                     ></div>
                                                 </div>
@@ -181,8 +193,8 @@ const Performance: React.FC<PerformanceProps> = ({ users, services }) => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-8 text-center text-black/40 italic">
-                                        Nenhum dado de tempo de execução com Início e Fim registrados.
+                                    <td colSpan={3} className="px-6 py-10 text-center text-[var(--text-faint)] font-black uppercase tracking-widest text-[10px] italic">
+                                        Nenhum dado logístico consolidado.
                                     </td>
                                 </tr>
                             )}

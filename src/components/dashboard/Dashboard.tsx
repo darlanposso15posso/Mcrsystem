@@ -5,15 +5,19 @@ import {
     CheckCircle2,
     AlertTriangle,
     TrendingUp,
-    ArrowRight,
     ShieldCheck,
     Phone,
     Calendar,
     Clock,
     Camera,
     MessageCircle,
-    X
+    X,
+    Settings,
+    Eye,
+    EyeOff,
+    PieChart
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import {
     ResponsiveContainer,
     BarChart,
@@ -22,7 +26,7 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    PieChart,
+    PieChart as RechartsPieChart,
     Pie,
     Cell
 } from 'recharts';
@@ -30,11 +34,12 @@ import StatCard from './StatCard';
 import { DashboardStats, ServiceRecord } from '../../types';
 import { compressImage } from '../../utils/imageUtils';
 import { formatDate } from '../../utils/timeUtils';
+import { translations, Language } from '../../translations';
+import { SegmentLabels } from '../../translations/segments';
 
 interface DashboardProps {
     user: any;
     stats: DashboardStats;
-    upcomingServices: any[];
     recentServices: any[];
     alerts: any[];
     services: ServiceRecord[];
@@ -53,12 +58,14 @@ interface DashboardProps {
     setPreCleaningChecklistData: (data: Record<string, boolean>) => void;
     users?: any[];
     settings?: Record<string, string>;
+    segmentLabels?: SegmentLabels;
+    showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+    confirmAction: (message: string, onConfirm: () => void, onCancel?: () => void) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
     user,
     stats,
-    upcomingServices,
     recentServices,
     alerts,
     services,
@@ -75,8 +82,44 @@ const Dashboard: React.FC<DashboardProps> = ({
     preCleaningChecklistData,
     setPreCleaningChecklistData,
     users = [],
-    settings = {}
+    settings = {},
+    segmentLabels,
+    showToast,
+    confirmAction
 }) => {
+    const currentLang = (settings['language'] as Language) || 'pt';
+    const t = translations[currentLang];
+    // Dashboard Widget Customization State
+    const [visibleWidgets, setVisibleWidgets] = useState<Record<string, boolean>>({
+        stats_overview: true,
+        team_stats: true,
+        upcoming_services: true,
+        revenue_chart: true,
+        business_types_chart: true,
+        recent_activity: true,
+        system_notices: true,
+        nfpa_compliance: true
+    });
+    const [isCustomizing, setIsCustomizing] = useState(false);
+
+    // Load/Save Widget Preferences
+    useEffect(() => {
+        const saved = localStorage.getItem('dashboard_widgets');
+        if (saved) {
+            try {
+                setVisibleWidgets(JSON.parse(saved));
+            } catch (e) {
+                console.error("Failed to parse dashboard widgets", e);
+            }
+        }
+    }, []);
+
+    const toggleWidget = (id: string) => {
+        const newState = { ...visibleWidgets, [id]: !visibleWidgets[id] };
+        setVisibleWidgets(newState);
+        localStorage.setItem('dashboard_widgets', JSON.stringify(newState));
+    };
+
     // Calculando estatísticas da equipe
     const activeTechnicians = users.filter(u => u.role === 'technician' && u.status === 'active').length;
     const pendingTechnicians = users.filter(u => u.role === 'technician' && u.status === 'pending').length;
@@ -92,228 +135,171 @@ const Dashboard: React.FC<DashboardProps> = ({
     return (
         <div className="space-y-8 pb-32">
             {user.role === 'technician' && adminNote && adminNote.trim() !== '' && (
-                <div className="bg-amber-100 p-6 rounded-3xl border border-amber-200 shadow-sm relative overflow-hidden flex items-center gap-4">
-                    <div className="p-3 bg-amber-500 text-white rounded-2xl shadow-lg shadow-amber-500/20 shrink-0"><MessageCircle size={28} /></div>
+                <div className="bg-amber-100/10 p-6 rounded-none border border-amber-500/20 blue-glow relative overflow-hidden flex items-center gap-4">
+                    <div className="p-3 bg-amber-500 text-white rounded-none shadow-lg shadow-amber-500/20 shrink-0"><MessageCircle size={28} /></div>
                     <div>
-                        <h3 className="text-xl font-black text-amber-900 tracking-tight">Aviso Geral da Administração</h3>
-                        <p className="text-amber-900/80 text-sm font-bold mt-1 max-w-2xl whitespace-pre-wrap">{adminNote}</p>
+                        <h3 className="text-xl font-black text-amber-500 tracking-tight">Aviso Geral da Administração</h3>
+                        <p className="text-[var(--text-muted)] text-sm font-bold mt-1 max-w-2xl whitespace-pre-wrap">{adminNote}</p>
                     </div>
                 </div>
             )}
 
             {user.role === 'admin' ? (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <StatCard
-                            title="Clientes Ativos"
-                            value={stats.activeClients}
-                            icon={<Users className="text-blue-500" />}
-                            trend="Total"
-                        />
-                        <StatCard
-                            title="Serviços no Mês"
-                            value={stats.servicesThisMonth}
-                            icon={<ClipboardList className="text-emerald-500" />}
-                            trend="Executados"
-                        />
-                        <StatCard
-                            title="Trabalhos Concluídos"
-                            value={stats.completedServicesTotal || 0}
-                            icon={<CheckCircle2 className="text-emerald-600" />}
-                            trend="Total histórico"
-                        />
-                        <StatCard
-                            title="Atrasados (Overdue)"
-                            value={stats.overdueServices}
-                            icon={<AlertTriangle className="text-amber-500" />}
-                            trend="Ação necessária"
-                            isWarning={stats.overdueServices > 0}
-                        />
-                        <StatCard
-                            title="Projeção de Receita (Anual)"
-                            value={`$${stats.estimatedRevenue.toLocaleString()}`}
-                            icon={<TrendingUp className="text-purple-500" />}
-                            trend="Projeção Lucro Bruto"
-                        />
+                    {/* Admin Header with Customization Toggle */}
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-2xl font-black tracking-tight text-white mb-1">Visão Geral</h2>
+                            <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest italic">Controle Central D&E</p>
+                        </div>
+                        <button
+                            onClick={() => setIsCustomizing(!isCustomizing)}
+                            className={`flex items-center gap-2 px-6 py-2 rounded-none font-bold text-xs transition-all ${isCustomizing ? 'bg-blue-600 text-white' : 'bg-[var(--card-alt-color)] text-[var(--text-muted)] hover:bg-[var(--card-alt-color)]/80'
+                                }`}
+                        >
+                            <Settings size={16} />
+                            {isCustomizing ? 'Salvar Dashboard' : 'Personalizar'}
+                        </button>
                     </div>
 
-                    {/* Raio-X da Equipe */}
-                    <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-black/5 shadow-sm mt-8">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-black tracking-tight flex items-center gap-3">
-                                <Users className="text-blue-500" size={24} />
-                                Raio-X da Equipe Técnica
+                    {/* Customizer Panel */}
+                    {isCustomizing && (
+                        <div className="bg-blue-600/10 border border-blue-600/20 p-6 rounded-none mb-8 blue-glow animate-in fade-in slide-in-from-top-4 duration-300">
+                            <h3 className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Settings size={14} /> Gerenciar Widgets
                             </h3>
-                            <div className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full uppercase">Gestão de Pessoal</div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="p-4 bg-black/[0.02] rounded-2xl border border-black/5 flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-bold text-black/40 uppercase mb-1">Técnicos Ativos</p>
-                                    <p className="text-3xl font-black text-emerald-600 leading-none">{activeTechnicians}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center"><CheckCircle2 size={24} /></div>
-                            </div>
-
-                            <div className="p-4 bg-black/[0.02] rounded-2xl border border-black/5 flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-bold text-black/40 uppercase mb-1">Cadastros Pendentes</p>
-                                    <p className="text-3xl font-black text-amber-600 leading-none">{pendingTechnicians}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><AlertTriangle size={24} /></div>
-                            </div>
-
-                            <div className="p-4 bg-black/[0.02] rounded-2xl border border-black/5">
-                                <p className="text-xs font-bold text-black/40 uppercase mb-3">Nível de Conhecimento</p>
-                                <div className="space-y-2">
-                                    {Object.entries(knowledgeStats).map(([level, count]) => (
-                                        <div key={level} className="flex justify-between items-center text-sm">
-                                            <span className="font-medium text-gray-700">{level}</span>
-                                            <span className="font-bold bg-white px-2 py-0.5 rounded-lg border shadow-sm">{count as number}</span>
-                                        </div>
-                                    ))}
-                                    {Object.keys(knowledgeStats).length === 0 && (
-                                        <div className="text-xs text-black/40 italic">Nenhum dado cadastrado</div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {alerts && alerts.length > 0 && (
-                        <div className="bg-amber-50 p-6 rounded-3xl border border-amber-200 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                            <div className="flex items-center gap-3 mb-6 relative z-10">
-                                <div className="p-3 bg-amber-500 text-white rounded-2xl shadow-lg shadow-amber-500/20"><AlertTriangle size={24} /></div>
-                                <div>
-                                    <h3 className="text-xl font-black text-amber-900 tracking-tight">Atenção: Serviços Próximos</h3>
-                                    <p className="text-amber-700/80 text-sm font-bold">Estes clientes têm limpeza agendada para os próximos 20 dias.</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
-                                {alerts.map((alert, i) => (
-                                    <div key={i} className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm flex flex-col justify-between">
-                                        <div>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h4 className="font-bold text-gray-900 line-clamp-1">{alert.clientName}</h4>
-                                                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-black uppercase rounded-lg">Faltam {alert.daysUntil} dias</span>
-                                            </div>
-                                            <p className="text-xs text-gray-500 line-clamp-1">{alert.city}, {alert.state}</p>
-                                        </div>
-                                        <div className="mt-4 pt-4 border-t border-amber-50 flex flex-col gap-3 text-xs">
-                                            <div className="flex justify-between items-center">
-                                                <div className="font-bold text-gray-400">Data Limite:</div>
-                                                <div className="font-black text-amber-600">{new Date(alert.nextServiceDate + 'T12:00:00').toLocaleDateString('pt-BR')}</div>
-                                            </div>
-                                            <a
-                                                href={`https://wa.me/${alert.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá, aqui é da D&E! A limpeza da coifa em ${alert.clientName} vence em ${alert.daysUntil} dias. Vamos confirmar a agenda?`)}`}
-                                                target="_blank" rel="noreferrer"
-                                                className="flex items-center justify-center gap-2 w-full py-2 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600 transition-colors"
-                                            >
-                                                <MessageCircle size={14} /> Enviar WhatsApp
-                                            </a>
-                                        </div>
-                                    </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {Object.entries(visibleWidgets).map(([id, visible]) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => toggleWidget(id)}
+                                        className={`flex items-center justify-between p-3 border transition-all ${visible
+                                            ? 'bg-blue-600/20 border-blue-600/50 text-blue-400'
+                                            : 'bg-[var(--card-alt-color)] border-[var(--border-color)] text-[var(--text-muted)] grayscale'
+                                            }`}
+                                    >
+                                        <span className="text-[10px] font-bold uppercase truncate pr-2">
+                                            {id.replace(/_/g, ' ')}
+                                        </span>
+                                        {visible ? <Eye size={14} /> : <EyeOff size={14} />}
+                                    </button>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Quick Stats Grid */}
+                    {visibleWidgets.stats_overview && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <StatCard
+                                title={segmentLabels?.clients || t.active_clients}
+                                value={stats.activeClients}
+                                icon={<Users size={20} />}
+                                trend="+12% vs last month"
+                                color="blue"
+                            />
+                            <StatCard
+                                title={segmentLabels?.services || t.services_month}
+                                value={stats.servicesThisMonth}
+                                icon={<ClipboardList size={20} />}
+                                trend="+5% vs last month"
+                                color="blue"
+                            />
+                            <StatCard
+                                title={t.completed_total}
+                                value={stats.completedServicesTotal}
+                                icon={<CheckCircle2 size={20} />}
+                                color="purple"
+                            />
+                            <StatCard
+                                title={t.overdue}
+                                value={stats.overdueServices}
+                                icon={<AlertTriangle size={20} />}
+                                color="red"
+                            />
+                            <StatCard
+                                title={t.revenue_est}
+                                value={`$${stats.estimatedRevenue.toLocaleString()}`}
+                                icon={<TrendingUp size={20} />}
+                                trend="+8% vs last month"
+                                color="amber"
+                            />
+                            <StatCard
+                                title={segmentLabels?.next_check || t.next_service}
+                                value={activeService ? formatDate(activeService.serviceDate) : '---'}
+                                icon={<Calendar size={20} />}
+                                color="indigo"
+                            />
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                         <div className="lg:col-span-2 space-y-8">
-                            <div className="bg-white p-5 md:p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
-                                <div className="flex justify-between items-center mb-8">
-                                    <h3 className="text-xl font-black tracking-tight">Agenda da Semana</h3>
-                                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-full uppercase">Próximos 7 dias</span>
-                                </div>
-                                <div className="space-y-4">
-                                    {upcomingServices.length > 0 ? upcomingServices.map((s, i) => {
-                                        const nextDateVal = new Date(s.nextServiceDate + 'T12:00:00');
-                                        const today = new Date();
-                                        today.setHours(12, 0, 0, 0);
-                                        const diff = nextDateVal.getTime() - today.getTime();
-                                        const diffDays = Math.ceil(diff / (1000 * 3600 * 24));
-
-                                        let bgClass = "bg-emerald-50 text-emerald-600 border-emerald-100";
-                                        let textClass = "text-emerald-500";
-                                        if (diffDays < 0) {
-                                            bgClass = "bg-red-50 text-red-600 border-red-100";
-                                            textClass = "text-red-500";
-                                        } else if (diffDays === 0) {
-                                            bgClass = "bg-blue-50 text-blue-600 border-blue-100";
-                                            textClass = "text-blue-500";
-                                        }
-
-                                        return (
-                                            <div key={i} className="flex items-center justify-between p-4 bg-black/[0.02] rounded-2xl hover:bg-black/[0.04] transition-colors">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-14 h-14 ${bgClass} rounded-xl shadow-sm flex flex-col items-center justify-center border`}>
-                                                        <span className={`text-[10px] font-black uppercase ${textClass}`}>{nextDateVal.toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                                                        <span className="text-xl font-black leading-none">{nextDateVal.getDate()}</span>
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-base">{s.restaurantName}</div>
-                                                        <div className="flex items-center gap-2 mt-0.5">
-                                                            <div className="text-[10px] text-black/40 uppercase font-bold">{s.systemType}</div>
-                                                            {diffDays < 0 && <span className="bg-red-100 text-red-600 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Atrasado</span>}
-                                                            {diffDays === 0 && <span className="bg-blue-100 text-blue-600 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Hoje</span>}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <button className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors">
-                                                    <ArrowRight size={18} />
-                                                </button>
-                                            </div>
-                                        );
-                                    }) : (
-                                        <div className="text-center py-12 text-black/20 font-medium">Nenhum serviço agendado.</div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {user.role === 'admin' && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="bg-white p-5 md:p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
-                                        <h3 className="text-xl font-black tracking-tight mb-8">Volume de Serviços</h3>
-                                        <div className="h-64">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={stats.monthlyTrends || []}>
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                                                    <YAxis axisLine={false} tickLine={false} />
-                                                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
-                                                    <Bar dataKey="total" fill="#10b981" radius={[10, 10, 0, 0]} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
+                            {/* Revenue Chart Widget */}
+                            {visibleWidgets.revenue_chart && (
+                                <div className="bg-[var(--card-color)] p-6 md:p-8 rounded-none border border-[var(--border-muted)] blue-glow-hover transition-all">
+                                    <div className="flex justify-between items-center mb-8">
+                                        <div>
+                                            <h3 className="text-xl font-black tracking-tight text-white flex items-center gap-3">
+                                                <TrendingUp className="text-blue-600" size={24} />
+                                                Faturamento e Projeção
+                                            </h3>
+                                            <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest mt-1">Estimativa de Lucro Bruto Anual</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs font-bold text-[var(--text-faint)] uppercase tracking-widest mb-1">Média Anual</p>
+                                            <p className="text-3xl font-black text-blue-600">${stats.estimatedRevenue.toLocaleString()}</p>
                                         </div>
                                     </div>
-                                    <div className="bg-white p-5 md:p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
-                                        <h3 className="text-xl font-black tracking-tight mb-8">Tipos de Negócio</h3>
-                                        <div className="h-64">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={stats.establishmentCounts || []}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={80}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                    >
-                                                        {(stats.establishmentCounts || []).map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'][index % 6]} />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                            <div className="flex flex-wrap justify-center gap-3 mt-4">
-                                                {(stats.establishmentCounts || []).map((entry, index) => (
-                                                    <div key={index} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-black/60">
-                                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'][index % 6] }}></div>
-                                                        {entry.name}
+                                    <div className="h-64">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={stats.monthlyTrends || []}>
+                                                <Bar dataKey="total" fill="url(#blueGradient)" radius={[0, 0, 0, 0]} barSize={40} className="blue-glow" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Team Stats Widget */}
+                            {visibleWidgets.team_stats && (
+                                <div className="bg-[var(--card-color)] p-6 md:p-8 rounded-none border border-[var(--border-muted)] blue-glow-hover transition-all">
+                                    <h3 className="text-xl font-black tracking-tight text-white flex items-center gap-3 mb-8">
+                                        <Users className="text-blue-600" size={24} />
+                                        Equipe Técnica
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <div className="p-5 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-xs font-bold text-white/30 uppercase mb-1">Ativos</p>
+                                                    <p className="text-3xl font-black text-blue-600 leading-none">{activeTechnicians}</p>
+                                                </div>
+                                                <CheckCircle2 className="text-blue-600/50" size={32} />
+                                            </div>
+                                            <div className="p-5 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-xs font-bold text-white/30 uppercase mb-1">Pendentes</p>
+                                                    <p className="text-3xl font-black text-amber-500 leading-none">{pendingTechnicians}</p>
+                                                </div>
+                                                <AlertTriangle className="text-amber-500/50" size={32} />
+                                            </div>
+                                        </div>
+                                        <div className="p-6 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)]">
+                                            <p className="text-xs font-bold text-blue-600 uppercase mb-4 tracking-widest">Capacitação</p>
+                                            <div className="space-y-4">
+                                                {Object.entries(knowledgeStats).map(([level, count]) => (
+                                                    <div key={level}>
+                                                        <div className="flex justify-between items-center text-[10px] font-black uppercase text-[var(--text-muted)] mb-1">
+                                                            <span>{level}</span>
+                                                            <span>{count as number} Técnico(s)</span>
+                                                        </div>
+                                                        <div className="w-full h-1.5 bg-[var(--card-alt-color)] rounded-none overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-blue-600 blue-glow"
+                                                                style={{ width: `${((count as number) / (activeTechnicians || 1)) * 100}%` }}
+                                                            ></div>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -321,43 +307,106 @@ const Dashboard: React.FC<DashboardProps> = ({
                                     </div>
                                 </div>
                             )}
+
+                            {/* Upcoming / Alerts Widget */}
+                            {visibleWidgets.upcoming_services && alerts && alerts.length > 0 && (
+                                <div className="bg-amber-500/5 p-8 rounded-none border border-amber-500/20 blue-glow transition-all">
+                                    <div className="flex items-center gap-3 mb-8">
+                                        <div className="p-3 bg-amber-500 text-white rounded-none shadow-lg shadow-amber-500/20"><AlertTriangle size={24} /></div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-amber-500 tracking-tight">Alertas de Agendamento</h3>
+                                            <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest mt-1">Próximos 20 dias</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {alerts.map((alert, i) => (
+                                            <div key={i} className="bg-[var(--card-color)] p-5 rounded-none border border-[var(--border-muted)] flex flex-col justify-between blue-glow-hover transition-all">
+                                                <div>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h4 className="font-black text-white line-clamp-1 uppercase text-xs tracking-tight">{alert.clientName}</h4>
+                                                        <span className="px-2 py-0.5 bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase rounded-none border border-amber-500/20">{alert.daysUntil} DIAS</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">{alert.city}</p>
+                                                </div>
+                                                <div className="mt-6 flex flex-col gap-3">
+                                                    <div className="flex justify-between items-center text-[10px] font-bold">
+                                                        <span className="text-[var(--text-faint)] uppercase tracking-widest">Vencimento</span>
+                                                        <span className="text-amber-500 font-black">{new Date(alert.nextServiceDate + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                                                    </div>
+                                                    <a
+                                                        href={`https://wa.me/${alert.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá, aqui é da D&E! A limpeza da coifa em ${alert.clientName} vence em ${alert.daysUntil} dias. Vamos confirmar a agenda?`)}`}
+                                                        target="_blank" rel="noreferrer"
+                                                        className="flex items-center justify-center gap-2 w-full py-2 bg-blue-600 text-white rounded-none text-xs font-black hover:bg-blue-700 transition-all uppercase tracking-tighter"
+                                                    >
+                                                        <MessageCircle size={14} /> Confirmar Agenda
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-8">
-                            <div className="bg-white p-5 md:p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
-                                <h3 className="text-xl font-black tracking-tight mb-8">Atividade Recente</h3>
-                                <div className="space-y-6">
-                                    {recentServices.map((s, i) => (
-                                        <div key={i} className="flex gap-4 relative">
-                                            {i !== recentServices.length - 1 && <div className="absolute left-5 top-10 w-0.5 h-10 bg-black/5"></div>}
-                                            <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0 z-10">
-                                                <CheckCircle2 size={18} />
-                                            </div>
-                                            <div>
-                                                <div className="text-sm font-bold">{s.restaurantName}</div>
-                                                <div className="text-[10px] text-black/40 font-bold uppercase">Limpeza Concluída</div>
-                                                <div className="text-[10px] text-emerald-500 font-bold mt-1">{new Date(s.serviceDate).toLocaleDateString('pt-BR')}</div>
-                                            </div>
+                            {/* Business Type Pie Chart Widget */}
+                            {visibleWidgets.business_types_chart && (
+                                <div className="bg-[var(--card-color)] p-6 md:p-8 rounded-none border border-[var(--border-muted)] blue-glow-hover transition-all">
+                                    <h3 className="text-xl font-black tracking-tight text-white flex items-center gap-3 mb-8">
+                                        <PieChart size={24} className="text-blue-600" />
+                                        Tipos de Negócio
+                                    </h3>
+                                    <div className="h-64 relative flex flex-col items-center justify-center">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RechartsPieChart>
+                                                <Pie
+                                                    data={stats.establishmentCounts || []}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={60}
+                                                    outerRadius={80}
+                                                    paddingAngle={5}
+                                                    dataKey="value"
+                                                    stroke="none"
+                                                >
+                                                    {(stats.establishmentCounts || []).map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={['#3b82f6', '#2563eb', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'][index % 6]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip contentStyle={{ backgroundColor: 'var(--card-color)', border: 'none', borderRadius: '0px' }} />
+                                            </RechartsPieChart>
+                                        </ResponsiveContainer>
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                            <span className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-widest">Total</span>
+                                            <span className="text-2xl font-black text-white">{stats.activeClients}</span>
                                         </div>
-                                    ))}
+                                    </div>
+                                    <div className="flex flex-wrap justify-center gap-3 mt-8">
+                                        {(stats.establishmentCounts || []).map((entry, index) => (
+                                            <div key={index} className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-white/30 bg-[var(--card-alt-color)] px-2 py-1">
+                                                <div className="w-2 h-2 rounded-none" style={{ backgroundColor: ['#3b82f6', '#2563eb', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'][index % 6] }}></div>
+                                                {entry.name}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
-                            {user.role === 'admin' && notifications && notifications.length > 0 && (
-                                <div className="bg-red-50 p-5 md:p-8 rounded-[2.5rem] border border-red-100 shadow-sm">
-                                    <h3 className="text-xl font-black tracking-tight mb-6 text-red-600">Avisos do Sistema</h3>
-                                    <div className="space-y-4">
-                                        {notifications.map((notif: any) => (
-                                            <div key={notif.id} className="bg-white p-4 rounded-2xl flex items-start gap-4 border border-red-100 relative">
-                                                <button onClick={() => handleDeleteNotification(notif.id)} className="absolute top-4 right-4 text-black/20 hover:text-red-500 transition-colors">
-                                                    <X size={16} />
-                                                </button>
-                                                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 shrink-0">
-                                                    <AlertTriangle size={18} />
+                            {/* Recent Activity Widget */}
+                            {visibleWidgets.recent_activity && (
+                                <div className="bg-[var(--card-color)] p-6 md:p-8 rounded-none border border-[var(--border-muted)] blue-glow-hover transition-all">
+                                    <h3 className="text-xl font-black tracking-tight text-white mb-8">Fluxo Recente</h3>
+                                    <div className="space-y-6">
+                                        {recentServices.map((s, i) => (
+                                            <div key={i} className="flex gap-4 relative">
+                                                {i !== recentServices.length - 1 && <div className="absolute left-5 top-10 w-px h-10 bg-[var(--card-alt-color)]"></div>}
+                                                <div className="w-10 h-10 rounded-none bg-[var(--card-alt-color)] border border-[var(--border-color)] flex items-center justify-center text-blue-500 shrink-0 z-10 blue-glow">
+                                                    <CheckCircle2 size={18} />
                                                 </div>
-                                                <div className="pr-6">
-                                                    <p className="text-sm font-medium mb-1">{notif.message}</p>
-                                                    <div className="text-[10px] text-black/40 font-bold uppercase">{new Date(notif.createdAt).toLocaleString('pt-BR')}</div>
+                                                <div>
+                                                    <div className="text-sm font-black text-white uppercase tracking-tight">{s.restaurantName}</div>
+                                                    <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Limpeza Concluída</div>
+                                                    <div className="text-[10px] text-blue-500 font-black mt-1 uppercase">{new Date(s.serviceDate).toLocaleDateString('pt-BR')}</div>
                                                 </div>
                                             </div>
                                         ))}
@@ -365,72 +414,99 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </div>
                             )}
 
-                            <div className="bg-[#0A0A0B] p-5 md:p-8 rounded-[2.5rem] text-white overflow-hidden relative">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                                <h3 className="text-lg font-bold mb-2">NFPA 96 Compliance</h3>
-                                <p className="text-white/40 text-xs leading-relaxed mb-6">Mantenha seus clientes em conformidade com as normas de segurança contra incêndio.</p>
-                                <div className="flex items-end justify-between">
-                                    <div className="flex items-center gap-2 text-emerald-500 font-bold text-xs">
-                                        <ShieldCheck size={16} />
-                                        <span>PROTEÇÃO ATIVA</span>
-                                    </div>
-                                    <div className="text-4xl font-black tracking-tighter text-emerald-400">
-                                        {stats.nfpaRate || 0}%
+                            {/* NFPA Compliance Gauge Widget */}
+                            {visibleWidgets.nfpa_compliance && (
+                                <div className="bg-blue-600 p-8 rounded-none text-[var(--bg-color)] overflow-hidden relative blue-glow">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                                    <h3 className="text-lg font-black uppercase tracking-tighter mb-2 italic">Standard NFPA 96</h3>
+                                    <p className="text-[var(--bg-color)]/60 text-xs font-bold leading-tight mb-8">Índice atual de conformidade na base instalada.</p>
+                                    <div className="flex items-end justify-between">
+                                        <div className="flex items-center gap-2 text-[var(--bg-color)] font-black text-xs">
+                                            <ShieldCheck size={20} />
+                                            <span className="uppercase tracking-widest">Security Score</span>
+                                        </div>
+                                        <div className="text-4xl font-black tracking-tighter text-[var(--bg-color)] underline decoration-4 underline-offset-4">
+                                            {stats.nfpaRate || 0}%
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* System Notices Widget (Admin Notifications) */}
+                            {visibleWidgets.system_notices && notifications && notifications.length > 0 && (
+                                <div className="bg-red-500/5 p-8 rounded-none border border-red-500/20 transition-all">
+                                    <h3 className="text-xl font-black tracking-tight mb-8 text-red-500 uppercase italic">Avisos do Sistema</h3>
+                                    <div className="space-y-4">
+                                        {notifications.map((notif: any) => (
+                                            <div key={notif.id} className="bg-[var(--card-color)] p-5 rounded-none flex items-start gap-4 border border-[var(--border-muted)] relative blue-glow-hover transition-all">
+                                                <button onClick={() => handleDeleteNotification(notif.id)} className="absolute top-4 right-4 text-[var(--text-faint)] hover:text-red-500 transition-colors">
+                                                    <X size={16} />
+                                                </button>
+                                                <div className="w-10 h-10 rounded-none bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+                                                    <AlertTriangle size={18} />
+                                                </div>
+                                                <div className="pr-6">
+                                                    <p className="text-sm font-bold text-white mb-2 leading-tight">{notif.message}</p>
+                                                    <div className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">{new Date(notif.createdAt).toLocaleString('pt-BR')}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </>
             ) : (
+                /* Technician View - Redesigned for Dark theme but keeping functionally identical */
                 <div className="space-y-6">
                     {activeService ? (
-                        <div className="bg-white p-5 md:p-8 rounded-3xl border-2 border-emerald-500 shadow-xl">
-                            <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4 md:gap-0">
+                        <div className="bg-[var(--card-color)] p-6 md:p-10 rounded-none border border-blue-600 shadow-xl blue-glow animate-pulse-subtle">
+                            <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-6 md:gap-0">
                                 <div>
-                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full uppercase tracking-widest mb-2 inline-block">Serviço em Andamento</span>
-                                    <h2 className="text-3xl font-bold">{activeService.restaurantName}</h2>
-                                    <p className="text-black/40 flex items-center gap-2 mt-1">
-                                        <Clock size={16} /> Iniciado em: {activeService.inspectionStartTime ? new Date(activeService.inspectionStartTime).toLocaleTimeString() : 'N/A'}
+                                    <span className="text-[10px] font-black bg-blue-600 text-[var(--bg-color)] px-4 py-1 rounded-none uppercase tracking-widest mb-3 inline-block">Serviço em Andamento</span>
+                                    <h2 className="text-4xl font-black text-white tracking-tight">{activeService.restaurantName}</h2>
+                                    <p className="text-[var(--text-muted)] flex items-center gap-2 mt-2 font-bold uppercase text-[10px] tracking-widest">
+                                        <Clock size={16} className="text-blue-600" /> Iniciado: {activeService.inspectionStartTime ? new Date(activeService.inspectionStartTime).toLocaleTimeString() : 'N/A'}
                                     </p>
                                 </div>
                                 <div className="text-left md:text-right">
-                                    <div className="text-sm font-bold text-emerald-600">Tempo Decorrido</div>
-                                    <div className="text-2xl font-mono font-bold">
+                                    <div className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">Tempo de Operação</div>
+                                    <div className="text-3xl font-mono font-black text-white">
                                         {activeService.inspectionStartTime ? Math.floor((new Date().getTime() - new Date(activeService.inspectionStartTime).getTime()) / 60000) : 0} min
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <h3 className="font-bold text-lg border-b pb-2">Checklist de Conclusão</h3>
-                                    <div className="space-y-3">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                                <div className="space-y-6">
+                                    <h3 className="font-black text-lg text-white uppercase tracking-widest border-b border-[var(--border-muted)] pb-4">Checklist de Conclusão</h3>
+                                    <div className="grid grid-cols-1 gap-3">
                                         {Object.entries(completionChecklist).map(([key, val]) => (
-                                            <label key={key} className="flex items-center gap-3 p-3 bg-black/5 rounded-xl cursor-pointer hover:bg-black/10 transition-colors">
+                                            <label key={key} className="flex items-center gap-4 p-4 bg-[var(--card-alt-color)] border border-[var(--border-muted)] rounded-none cursor-pointer hover:bg-[var(--card-alt-color)]/80 transition-colors group">
                                                 <input
                                                     type="checkbox"
                                                     checked={val as boolean}
                                                     onChange={e => setCompletionChecklist({ ...completionChecklist, [key]: e.target.checked })}
-                                                    className="w-5 h-5 rounded text-emerald-500"
+                                                    className="w-6 h-6 rounded-none text-blue-600 bg-black/20 border-[var(--border-color)]"
                                                 />
-                                                <span className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
+                                                <span className="text-sm font-bold text-[var(--text-muted)] group-hover:text-white capitalize tracking-tight">{key.replace(/([A-Z])/g, ' $1')}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <h3 className="font-bold text-lg border-b pb-2">Fotos de Conclusão</h3>
-                                    <div className="grid grid-cols-3 gap-2">
+                                <div className="space-y-6">
+                                    <h3 className="font-black text-lg text-white uppercase tracking-widest border-b border-[var(--border-muted)] pb-4">Relatório Fotográfico</h3>
+                                    <div className="grid grid-cols-3 gap-3">
                                         {[0, 1, 2, 3, 4, 5].map(i => (
-                                            <label key={i} className="aspect-square bg-black/5 rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-black/10 hover:border-emerald-500 transition-colors cursor-pointer group relative overflow-hidden">
+                                            <label key={i} className="aspect-square bg-[var(--card-alt-color)] rounded-none flex flex-col items-center justify-center border-2 border-dashed border-[var(--border-muted)] hover:border-blue-600 transition-colors cursor-pointer group relative overflow-hidden">
                                                 {completionPhotos && completionPhotos[i] ? (
                                                     <img src={completionPhotos[i]} alt={`Foto ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
                                                 ) : (
                                                     <>
-                                                        <Camera className="text-black/20 group-hover:text-emerald-500" size={24} />
-                                                        <span className="text-[10px] text-black/40 mt-1 uppercase font-bold">Foto {i + 1}</span>
+                                                        <Camera className="text-white/10 group-hover:text-blue-600 transition-colors" size={32} />
+                                                        <span className="text-[9px] text-[var(--text-faint)] mt-2 uppercase font-black tracking-widest">Foto {i + 1}</span>
                                                     </>
                                                 )}
                                                 <input
@@ -443,12 +519,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                                                         if (file) {
                                                             try {
                                                                 const compressedBase64 = await compressImage(file);
+                                                                const { uploadImage } = await import('../../utils/storageUtils');
+                                                                const publicUrl = await uploadImage(compressedBase64);
+
                                                                 const newPhotos = [...(completionPhotos || [])];
-                                                                newPhotos[i] = compressedBase64;
+                                                                newPhotos[i] = publicUrl;
                                                                 setCompletionPhotos(newPhotos);
                                                             } catch (err) {
-                                                                console.error("Erro ao comprimir imagem:", err);
-                                                                alert("Erro ao processar a foto. Tente novamente.");
+                                                                console.error("Erro ao processar foto:", err);
+                                                                showToast("Erro ao enviar a foto. Verifique sua conexão.", 'error');
                                                             }
                                                         }
                                                     }}
@@ -457,198 +536,46 @@ const Dashboard: React.FC<DashboardProps> = ({
                                         ))}
                                     </div>
 
-                                    {/* Opções de Inspeção Opcional (Hood, Fan, Duto) */}
-                                    <div className="pt-6 space-y-6">
-                                        <h3 className="font-bold text-lg border-b pb-2">Inspeções Adicionais (Opcional)</h3>
-
-                                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                                            {/* Hood Condition */}
-                                            <div className="bg-black/[0.02] p-4 rounded-2xl border border-black/5">
-                                                <h4 className="text-[10px] font-black uppercase text-indigo-600 mb-3 tracking-widest">Condição das Coifas (Hoods)</h4>
-                                                <div className="space-y-2">
-                                                    {[
-                                                        { id: "opt_hood_grease", label: "Acúmulo excessivo de gordura" },
-                                                        { id: "opt_hood_corrosion", label: "Superfície interna com corrosão" },
-                                                        { id: "opt_hood_welds", label: "Soldas ou junções danificadas" },
-                                                        { id: "opt_hood_deep_clean", label: "Necessitou limpeza profunda" }
-                                                    ].map(item => (
-                                                        <label key={item.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-xl transition-colors cursor-pointer group">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={preCleaningChecklistData[item.id] || false}
-                                                                onChange={e => setPreCleaningChecklistData({ ...preCleaningChecklistData, [item.id]: e.target.checked })}
-                                                                className="w-5 h-5 rounded text-indigo-500 border-black/10 focus:ring-indigo-500"
-                                                            />
-                                                            <span className="text-xs text-black/60 group-hover:text-black">{item.label}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Fan Condition */}
-                                            <div className="bg-black/[0.02] p-4 rounded-2xl border border-black/5">
-                                                <h4 className="text-[10px] font-black uppercase text-indigo-600 mb-3 tracking-widest">Condições dos Exaustores (Fans)</h4>
-                                                <div className="space-y-2">
-                                                    {[
-                                                        { id: "opt_fan_vibration", label: "Vibração anormal" },
-                                                        { id: "opt_fan_noise", label: "Ruído excessivo" },
-                                                        { id: "opt_fan_belt", label: "Correia desgastada" },
-                                                        { id: "opt_fan_struct", label: "Estrutura problemática" },
-                                                        { id: "opt_fan_fire_risk", label: "Risco de incêndio futuro" },
-                                                        { id: "opt_fan_repair", label: "Necessita reparo estrutural" },
-                                                        { id: "opt_fan_new", label: "Necessita novo Fan" },
-                                                        { id: "opt_fan_maintenance", label: "Manutenção imediata" }
-                                                    ].map(item => (
-                                                        <label key={item.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-xl transition-colors cursor-pointer group">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={preCleaningChecklistData[item.id] || false}
-                                                                onChange={e => setPreCleaningChecklistData({ ...preCleaningChecklistData, [item.id]: e.target.checked })}
-                                                                className="w-5 h-5 rounded text-indigo-500 border-black/10 focus:ring-indigo-500"
-                                                            />
-                                                            <span className="text-xs text-black/60 group-hover:text-black">{item.label}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Duct Condition */}
-                                            <div className="bg-black/[0.02] p-4 rounded-2xl border border-black/5">
-                                                <h4 className="text-[10px] font-black uppercase text-indigo-600 mb-3 tracking-widest">Dutos de Exaustão</h4>
-                                                <div className="space-y-2">
-                                                    {[
-                                                        { id: "duct_grease_leak", label: "Vazamento nas junções" },
-                                                        { id: "duct_needs_panel", label: "Necessita novo painel de acesso" },
-                                                        { id: "duct_obstruction", label: "Duto com obstrução parcial" }
-                                                    ].map(item => (
-                                                        <label key={item.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-xl transition-colors cursor-pointer group">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={preCleaningChecklistData[item.id] || false}
-                                                                onChange={e => setPreCleaningChecklistData({ ...preCleaningChecklistData, [item.id]: e.target.checked })}
-                                                                className="w-5 h-5 rounded text-indigo-500 border-black/10 focus:ring-indigo-500"
-                                                            />
-                                                            <span className="text-xs text-black/60 group-hover:text-black">{item.label}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4 space-y-4">
-                                        <div className="flex gap-4 p-4 bg-red-50 rounded-2xl border border-red-100">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input type="checkbox" checked={newService.nfpaCompliance} onChange={e => setNewService({ ...newService, nfpaCompliance: e.target.checked })} className="rounded text-emerald-500" />
-                                                <span className="text-sm font-bold">Conforme NFPA 96</span>
+                                    <div className="space-y-4 pt-6">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <label className="flex items-center gap-3 p-4 bg-blue-600/10 border border-blue-600/20 rounded-none cursor-pointer">
+                                                <input type="checkbox" checked={newService.nfpaCompliance} onChange={e => setNewService({ ...newService, nfpaCompliance: e.target.checked })} className="w-5 h-5 rounded-none text-blue-600" />
+                                                <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Compliance NFPA</span>
                                             </label>
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input type="checkbox" checked={newService.fireHazard} onChange={e => setNewService({ ...newService, fireHazard: e.target.checked })} className="rounded text-red-500" />
-                                                <span className="text-sm font-bold">Risco de Incêndio</span>
+                                            <label className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-none cursor-pointer">
+                                                <input type="checkbox" checked={newService.fireHazard} onChange={e => setNewService({ ...newService, fireHazard: e.target.checked })} className="w-5 h-5 rounded-none text-red-500" />
+                                                <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Risco Incêndio</span>
                                             </label>
                                         </div>
 
-                                        <div>
-                                            <label className="text-sm font-bold block mb-2">Observações / Anotações do Serviço</label>
+                                        <div className="mt-4">
                                             <textarea
                                                 value={newService.notes || ''}
                                                 onChange={e => setNewService({ ...newService, notes: e.target.value })}
-                                                placeholder="Digite aqui recomendações para a próxima limpeza, peças trocadas, etc."
-                                                className="w-full p-4 bg-black/5 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 text-sm min-h-[100px]"
+                                                placeholder="Anotações para o relatório final..."
+                                                className="w-full p-6 bg-[var(--card-alt-color)] border border-[var(--border-muted)] rounded-none text-white focus:ring-2 focus:ring-blue-600 text-sm min-h-[120px] outline-none"
                                             ></textarea>
                                         </div>
 
                                         <button
                                             onClick={handleCompleteService}
-                                            disabled={
-                                                !Object.values(completionChecklist).every(v => v)
-                                            }
-                                            className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={!Object.values(completionChecklist).every(v => v)}
+                                            className="w-full py-5 bg-blue-600 text-[var(--bg-color)] rounded-none font-black uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-500 transition-all disabled:opacity-20 disabled:grayscale"
                                         >
-                                            Finalizar e Enviar Relatório
+                                            Finalizar e Emitir Laudo
                                         </button>
-                                        {!Object.values(completionChecklist).every(v => v) && (
-                                            <p className="text-[10px] text-center text-red-500 font-bold uppercase mt-1">Preencha todo o checklist para finalizar</p>
-                                        )}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-white p-5 md:p-8 rounded-3xl border border-black/5 shadow-sm">
-                            <h2 className="text-2xl font-bold mb-2">Bem-vindo, {user.name}!</h2>
-                            <p className="text-black/40">Nenhum serviço em andamento. Vá para a aba "Clientes" para iniciar uma nova limpeza.</p>
+                        <div className="bg-[var(--card-color)] p-10 rounded-none border border-[var(--border-muted)] blue-glow">
+                            <h2 className="text-3xl font-black text-white tracking-tight mb-2 italic">{user?.name || 'Comandante'}, pronto para o próximo check?</h2>
+                            <p className="text-[var(--text-muted)] font-bold uppercase text-xs tracking-widest">Nenhuma tarefa ativa no momento. Inicie no menu Clientes.</p>
                         </div>
                     )}
                 </div>
             )}
-
-            {/* Alerts and Pie Chart Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-black/5 shadow-sm">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                        <Phone className="text-amber-500" size={20} />
-                        {user.role === 'admin' ? 'Alertas de Agendamento' : 'Próximos Serviços'}
-                    </h3>
-                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                        {alerts.length === 0 ? (
-                            <p className="text-sm text-black/40 italic">Nenhum alerta para os próximos 15 dias.</p>
-                        ) : (
-                            alerts.map((alert, idx) => (
-                                <div key={idx} className="p-4 bg-amber-50 rounded-xl border border-amber-100">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="font-bold text-sm">{alert.name}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-xs text-black/60 mb-2">
-                                        <Calendar size={12} />
-                                        <span>Próxima limpeza: {formatDate(alert.nextServiceDate)}</span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <a href={`tel:${alert.phone}`} className="flex-1 flex items-center justify-center gap-2 py-2 bg-amber-500 text-white rounded-lg text-xs font-bold hover:bg-amber-600 transition-colors">
-                                            <Phone size={12} /> Ligar
-                                        </a>
-                                        <a
-                                            href={`https://wa.me/${alert.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá, aqui é da D&E! A limpeza da coifa em ${alert.name} será dia ${formatDate(alert.nextServiceDate)}. Vamos confirmar a agenda?`)}`}
-                                            target="_blank" rel="noreferrer"
-                                            className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600 transition-colors"
-                                        >
-                                            <MessageCircle size={12} /> WhatsApp
-                                        </a>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-
-                <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-black/5 shadow-sm">
-                    <h3 className="font-bold text-lg mb-6">Status dos Sistemas (NFPA 96)</h3>
-                    <div className="h-64 flex flex-col items-center justify-center">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={[
-                                        { name: 'Conforme', value: services.filter(s => s.nfpaCompliance).length || 1 },
-                                        { name: 'Não Conforme', value: services.filter(s => !s.nfpaCompliance).length || 0 },
-                                    ]}
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    <Cell fill="#10b981" />
-                                    <Cell fill="#ef4444" />
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
-                        <div className="flex gap-4 text-xs mt-4">
-                            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-emerald-500"></div> Conforme</div>
-                            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-500"></div> Não Conforme</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };

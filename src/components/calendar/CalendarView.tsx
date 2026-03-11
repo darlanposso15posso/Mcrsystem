@@ -8,8 +8,10 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 import { Client, ServiceRecord } from '../../types';
-import { MapPin, Navigation, Calendar as CalendarIcon, Filter } from 'lucide-react';
+import { MapPin, Navigation, Calendar as CalendarIcon, Filter, X, Mail, Clock, Send, Zap, Settings, MessageCircle, Key, Phone, Image as ImageIcon, CheckSquare, Loader2 } from 'lucide-react';
 import { ensureLocalDate } from '../../utils/timeUtils';
+import { translations, Language } from '../../translations';
+import { SegmentLabels } from '../../translations/segments';
 
 // Fix Leaflet's default icon path issues with bundlers
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
@@ -37,15 +39,17 @@ const localizer = dateFnsLocalizer({
 interface CalendarViewProps {
     clients: Client[];
     services: ServiceRecord[];
+    settings?: Record<string, string>;
+    segmentLabels?: SegmentLabels;
 }
 
 interface ServiceEvent extends CalendarEvent {
-    clientId: number;
+    clientId: number | string;
     clientName: string;
     address: string;
     lat?: number;
     lng?: number;
-    serviceId?: number;
+    serviceId?: number | string;
     type: 'SCHEDULED' | 'COMPLETED';
 }
 
@@ -74,7 +78,9 @@ const MapBounds = ({ markers }: { markers: ServiceEvent[] }) => {
     return null;
 };
 
-const CalendarView: React.FC<CalendarViewProps> = ({ clients, services }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ clients, services, settings = {}, segmentLabels }) => {
+    const currentLang = (settings['language'] as Language) || 'pt';
+    const t = translations[currentLang];
     const [view, setView] = useState<View>('month');
     const [date, setDate] = useState(new Date());
     const [selectedDateFilter, setSelectedDateFilter] = useState<Date | null>(new Date());
@@ -91,7 +97,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ clients, services }) => {
                     const localDate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0); // Noon local time
 
                     allEvents.push({
-                        title: `Limpeza: ${client.name}`,
+                        title: `${segmentLabels?.service || 'Limpeza'}: ${client.name}`,
                         start: localDate,
                         end: localDate,
                         allDay: true,
@@ -143,7 +149,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ clients, services }) => {
         return {
             style: {
                 backgroundColor,
-                borderRadius: '8px',
+                borderRadius: '0px',
                 opacity: 0.9,
                 color: 'white',
                 border: 'none',
@@ -160,32 +166,32 @@ const CalendarView: React.FC<CalendarViewProps> = ({ clients, services }) => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white p-6 rounded-[2.5rem] border border-black/5 shadow-sm">
+            <div className="flex justify-between items-center bg-[var(--card-color)] p-6 rounded-none border border-[var(--border-muted)] shadow-2xl emerald-glow">
                 <div>
-                    <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
+                    <h2 className="text-2xl font-black tracking-tight flex items-center gap-3 text-white uppercase italic">
                         <CalendarIcon className="text-emerald-500" />
-                        Calendário & Otimização de Rotas
+                        Calendário & Otimização
                     </h2>
-                    <p className="text-black/40 text-sm mt-1">
+                    <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest mt-1">
                         Selecione uma data para visualizar os clientes no mapa e otimizar o deslocamento da equipe.
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    <div className="flex items-center gap-2 text-sm font-bold bg-amber-50 text-amber-700 px-4 py-2 rounded-xl">
-                        <div className="w-3 h-3 rounded-full bg-amber-500"></div> Atrasado
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 px-4 py-2 rounded-none border border-red-500/20">
+                        <div className="w-2 h-2 rounded-none bg-red-500"></div> Atrasado
                     </div>
-                    <div className="flex items-center gap-2 text-sm font-bold bg-blue-50 text-blue-700 px-4 py-2 rounded-xl">
-                        <div className="w-3 h-3 rounded-full bg-blue-500"></div> Hoje
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-500 px-4 py-2 rounded-none border border-blue-500/20">
+                        <div className="w-2 h-2 rounded-none bg-blue-500"></div> Hoje
                     </div>
-                    <div className="flex items-center gap-2 text-sm font-bold bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500"></div> Agendado
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-4 py-2 rounded-none border border-emerald-500/20">
+                        <div className="w-2 h-2 rounded-none bg-emerald-500"></div> Agendado
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                 {/* Calendar Column */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-black/5 shadow-sm h-[700px] flex flex-col">
+                <div className="bg-[var(--card-color)] p-6 rounded-none border border-[var(--border-muted)] shadow-2xl h-[700px] flex flex-col emerald-glow">
                     <Calendar
                         localizer={localizer}
                         events={events}
@@ -215,28 +221,27 @@ const CalendarView: React.FC<CalendarViewProps> = ({ clients, services }) => {
                 </div>
 
                 {/* Route Map Column */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-black/5 shadow-sm h-[700px] flex flex-col relative overflow-hidden">
+                <div className="bg-[var(--card-color)] p-6 rounded-none border border-[var(--border-muted)] shadow-2xl h-[700px] flex flex-col relative overflow-hidden emerald-glow">
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-bold text-lg flex items-center gap-2">
-                            <MapPin className="text-blue-500" />
-                            Mapa de Rota Dinâmico
+                        <h3 className="font-black text-white uppercase italic tracking-tight flex items-center gap-2">
+                            <MapPin className="text-emerald-500" />
+                            Mapa de Operações
                         </h3>
                         {selectedDateFilter && (
-                            <div className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2">
-                                <Filter size={16} /> Data Selecionada: {format(selectedDateFilter, "dd 'de' MMMM", { locale: ptBR })}
-                                <button onClick={() => setSelectedDateFilter(null)} className="ml-2 hover:bg-blue-100 rounded-full p-1" title="Mostrar todos">
-                                    <span className="sr-only">Limpar filtro</span>
-                                    &times;
+                            <div className="bg-emerald-500/10 text-emerald-500 px-4 py-1.5 rounded-none border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <Filter size={16} /> Data: {format(selectedDateFilter, "dd 'de' MMMM", { locale: ptBR })}
+                                <button onClick={() => setSelectedDateFilter(null)} className="ml-2 hover:bg-emerald-500/20 rounded-none p-1" title="Mostrar todos">
+                                    <X size={14} />
                                 </button>
                             </div>
                         )}
                     </div>
 
-                    <div className="flex-1 rounded-2xl overflow-hidden border border-black/10 z-0">
+                    <div className="flex-1 rounded-none overflow-hidden border border-[var(--border-color)] z-0 bg-[var(--bg-color)]">
                         <MapContainer
                             center={activeMarkers.length > 0 ? [activeMarkers[0].lat!, activeMarkers[0].lng!] : defaultCenter}
                             zoom={11}
-                            className="w-full h-full"
+                            className="w-full h-full invert-map"
                         >
                             <TileLayer
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -251,13 +256,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ clients, services }) => {
                                     position={[marker.lat!, marker.lng!]}
                                     icon={customMarkerIcon}
                                 >
-                                    <Popup className="rounded-xl flex flex-col items-center">
+                                    <Popup className="custom-popup">
                                         <div className="p-1">
-                                            <div className="font-extrabold text-lg text-emerald-900 leading-tight mb-1">{marker.clientName}</div>
-                                            <div className="text-xs font-medium text-gray-500 mb-3">{marker.address}</div>
+                                            <div className="font-black text-lg text-emerald-500 leading-tight mb-1 uppercase italic">{marker.clientName}</div>
+                                            <div className="text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest">{marker.address}</div>
 
-                                            <button className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-xs font-bold transition-colors">
-                                                <Navigation size={14} /> Como Chegar
+                                            <button className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-[var(--bg-color)] py-2 px-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20">
+                                                <Navigation size={14} /> Traçar Rota
                                             </button>
                                         </div>
                                     </Popup>
@@ -267,23 +272,23 @@ const CalendarView: React.FC<CalendarViewProps> = ({ clients, services }) => {
                     </div>
 
                     <div className="mt-6">
-                        <div className="font-bold mb-3 flex items-center justify-between">
-                            <span>Resumo da Rota ({activeMarkers.length} paradas)</span>
+                        <div className="font-black text-white uppercase tracking-widest text-[10px] mb-3 flex items-center justify-between border-b border-[var(--border-muted)] pb-1">
+                            <span>Log de Paradas ({activeMarkers.length})</span>
                         </div>
-                        <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
+                        <div className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
                             {activeMarkers.length === 0 ? (
-                                <p className="text-sm text-black/40 italic">Nenhum cliente agendado nesta data com coordenadas preenchidas.</p>
+                                <p className="text-[10px] text-[var(--text-faint)] italic font-bold uppercase tracking-widest">Nenhuma intervenção mapeada para hoje.</p>
                             ) : (
                                 activeMarkers.map((m, i) => (
-                                    <div key={i} className="flex gap-3 items-center p-3 bg-black/[0.02] rounded-xl hover:bg-black/[0.04] transition-colors border border-black/5">
-                                        <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs shrink-0">
+                                    <div key={i} className="flex gap-3 items-center p-3 bg-[var(--card-alt-color)] rounded-none hover:bg-[var(--card-alt-color)]/80 transition-colors border border-[var(--border-muted)]">
+                                        <div className="w-6 h-6 rounded-none bg-emerald-500 text-[var(--bg-color)] font-black flex items-center justify-center text-xs shrink-0 shadow-lg shadow-emerald-500/20">
                                             {i + 1}
                                         </div>
                                         <div className="truncate flex-1">
-                                            <div className="font-bold text-sm truncate">{m.clientName}</div>
-                                            <div className="text-xs text-black/50 truncate">{m.address}</div>
+                                            <div className="font-black text-sm truncate uppercase text-white">{m.clientName}</div>
+                                            <div className="text-[10px] text-[var(--text-muted)] truncate font-bold uppercase tracking-tight">{m.address}</div>
                                         </div>
-                                        <a href={`https://www.google.com/maps/dir/?api=1&destination=${m.lat},${m.lng}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-700">
+                                        <a href={`https://www.google.com/maps/dir/?api=1&destination=${m.lat},${m.lng}`} target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 transition-colors">
                                             <Navigation size={16} />
                                         </a>
                                     </div>

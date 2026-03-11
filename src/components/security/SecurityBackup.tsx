@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { Shield, Download, History, Database, ShieldAlert } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
-const SecurityBackup: React.FC = () => {
+interface SecurityBackupProps {
+    showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+}
+
+const SecurityBackup: React.FC<SecurityBackupProps> = ({ showToast }) => {
     const [isExporting, setIsExporting] = useState(false);
 
     const handleDownloadBackup = async () => {
@@ -33,7 +37,7 @@ const SecurityBackup: React.FC = () => {
             URL.revokeObjectURL(url);
         } catch (error) {
             console.error("Export error:", error);
-            alert("Erro ao exportar dados.");
+            showToast("Erro ao exportar dados.", 'error');
         } finally {
             setIsExporting(false);
         }
@@ -41,67 +45,67 @@ const SecurityBackup: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            <div className="bg-[#0A0A0B] p-10 rounded-[2.5rem] text-white overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+            <div className="bg-[var(--card-color)] p-10 rounded-none border border-[var(--border-muted)] shadow-2xl overflow-hidden relative emerald-glow">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-none -mr-32 -mt-32 blur-3xl"></div>
                 <div className="relative z-10 max-w-2xl">
-                    <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-500 mb-6 border border-emerald-500/20">
+                    <div className="w-16 h-16 bg-emerald-500/20 rounded-none flex items-center justify-center text-emerald-500 mb-6 border border-emerald-500/20 shadow-lg shadow-emerald-500/10">
                         <Shield size={32} />
                     </div>
-                    <h2 className="text-3xl font-black tracking-tight mb-4">Segurança & Proteção de Dados (Cloud)</h2>
-                    <p className="text-white/60 leading-relaxed mb-8">
-                        Seus dados agora estão hospedados no Supabase (infraestrutura AWS), protegidos por criptografia de nível bancário e backups automáticos.
-                        Como administrador, você pode exportar uma cópia de segurança em formato JSON.
+                    <h2 className="text-3xl font-black tracking-tight mb-4 text-white uppercase italic">Infraestrutura & Resiliência Cloud</h2>
+                    <p className="text-[var(--text-muted)] leading-relaxed mb-8 font-bold uppercase text-[10px] tracking-widest">
+                        Dados persistidos via Supabase (AWS Engine), protegidos por criptografia AES-256 e redundância geográfica automática.
+                        Backups de segurança podem ser extraídos manualmente em formato estruturado.
                     </p>
                     <button
                         onClick={handleDownloadBackup}
                         disabled={isExporting}
-                        className="flex items-center gap-3 bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                        className="flex items-center gap-4 bg-emerald-500 hover:bg-emerald-400 text-[var(--bg-color)] px-10 py-5 rounded-none font-black uppercase italic tracking-widest transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50"
                     >
                         <Download size={20} />
-                        {isExporting ? 'Exportando...' : 'Exportar Dados (.json)'}
+                        {isExporting ? 'Processando...' : 'Extrair Snapshot JSON'}
                     </button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
+                <div className="bg-[var(--card-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl emerald-glow">
+                    <div className="flex items-center gap-4 mb-8 border-b border-[var(--border-muted)] pb-4">
+                        <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-none flex items-center justify-center text-blue-500">
                             <History size={24} />
                         </div>
-                        <h3 className="text-xl font-bold">Rotina de Backup</h3>
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest">Protocolo de Retenção</h3>
                     </div>
-                    <ul className="space-y-4">
-                        <li className="flex gap-3">
-                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 shrink-0"></div>
+                    <ul className="space-y-6">
+                        <li className="flex gap-4">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-none mt-1.5 shrink-0 shadow-lg shadow-emerald-500/20 animate-pulse"></div>
                             <div>
-                                <div className="font-bold text-sm">Backup Diário</div>
-                                <p className="text-xs text-black/40">Executado automaticamente às 04:00 AM</p>
+                                <div className="font-black text-white text-xs uppercase italic">Backup Automatizado Diário</div>
+                                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Snapshot às 04:00 AM UTC-3</p>
                             </div>
                         </li>
-                        <li className="flex gap-3">
-                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 shrink-0"></div>
+                        <li className="flex gap-4">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-none mt-1.5 shrink-0 shadow-lg shadow-emerald-500/20"></div>
                             <div>
-                                <div className="font-bold text-sm">Retenção de 7 dias</div>
-                                <p className="text-xs text-black/40">Mantemos os últimos 7 estados do sistema</p>
+                                <div className="font-black text-white text-xs uppercase italic">Políticas de Persistência</div>
+                                <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Janela de retenção de 7 estados ativos</p>
                             </div>
                         </li>
                     </ul>
                 </div>
 
-                <div className="bg-white p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500">
+                <div className="bg-[var(--card-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl emerald-glow">
+                    <div className="flex items-center gap-4 mb-8 border-b border-[var(--border-muted)] pb-4">
+                        <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-none flex items-center justify-center text-amber-500">
                             <ShieldAlert size={24} />
                         </div>
-                        <h3 className="text-xl font-bold">Monitoramento de Acesso</h3>
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest">Health Monitor</h3>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-black/[0.02] rounded-2xl">
-                        <div className="flex items-center gap-3">
-                            <Database size={18} className="text-black/40" />
-                            <span className="text-sm font-medium">Status do Banco de Dados</span>
+                    <div className="flex items-center justify-between p-6 bg-[var(--bg-color)] border border-[var(--border-muted)] rounded-none">
+                        <div className="flex items-center gap-4">
+                            <Database size={20} className="text-[var(--text-faint)]" />
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Core Database Engine</span>
                         </div>
-                        <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase">Saudável</span>
+                        <span className="px-4 py-1 bg-emerald-500/10 text-emerald-500 text-[9px] font-black rounded-none border border-emerald-500/20 uppercase tracking-widest">Active</span>
                     </div>
                 </div>
             </div>

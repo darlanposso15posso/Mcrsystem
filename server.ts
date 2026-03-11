@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
 import { createServer as createViteServer } from "vite";
@@ -17,11 +18,16 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
-  const PORT = parseInt(process.env.PORT || '3000', 10);
+  const PORT = parseInt(process.env.PORT || '5173', 10);
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://kokngsijyvfdtobvpswy.supabase.co';
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtva25nc2lqeXZmZHRvYnZwc3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwODI2MTQsImV4cCI6MjA4NzY1ODYxNH0.EzPCEh5panTyCcDvWnrBoOf3ANB3j7oHhA3rk7aqBLo';
-  const supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.warn("Supabase credentials missing from environment variables.");
+  }
+
+  const supabaseAdmin = createClient(supabaseUrl || '', supabaseKey || '', {
     auth: { persistSession: false, autoRefreshToken: false }
   });
 
@@ -85,8 +91,8 @@ async function startServer() {
     crossOriginEmbedderPolicy: false,
   }));
 
-  app.use(express.json({ limit: '1000mb' }));
-  app.use(express.urlencoded({ limit: '1000mb', extended: true }));
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
   app.use(cookieParser());
 
   // Auth Middleware
@@ -201,16 +207,24 @@ async function startServer() {
         }
       });
 
-      if (supaError) {
-        console.warn("Aviso no Supabase Auth (continuando apenas com SQLite):", supaError.message);
+      // Se criou no Supabase, atualiza profiles
+      if (supaData?.user) {
+        await supabaseAdmin.from('profiles').upsert({
+          id: supaData.user.id,
+          email,
+          name,
+          role: 'technician',
+          phone,
+          status: 'pending'
+        });
       }
 
       // Cria localmente com status pending
       const hashedPassword = await bcrypt.hash(password, 10);
       const info = db.prepare(`
-        INSERT INTO users (email, password, rawPassword, name, role, phone, knowledgeLevel, status) 
-        VALUES (?, ?, ?, ?, 'technician', ?, 'Aprendiz', 'pending')
-      `).run(email, hashedPassword, password, name, phone || '');
+        INSERT INTO users (email, password, name, role, phone, knowledgeLevel, status) 
+        VALUES (?, ?, ?, ?, ?, 'Aprendiz', 'pending')
+      `).run(email, hashedPassword, name, phone || '');
 
       res.json({ id: info.lastInsertRowid, message: "Cadastro recebido e aguardando aprovação" });
     } catch (e: any) {
@@ -225,7 +239,7 @@ async function startServer() {
   // User Management (Admin Only)
   app.get("/api/users", authenticate, (req: any, res) => {
     if (req.user.role !== 'admin') return res.status(403).json({ error: "Acesso negado" });
-    const users = db.prepare("SELECT id, email, name, role, phone, knowledgeLevel, address, joinDate, status, rawPassword FROM users").all();
+    const users = db.prepare("SELECT id, email, name, role, phone, knowledgeLevel, address, joinDate, status FROM users").all();
     res.json(users);
   });
 
@@ -243,18 +257,26 @@ async function startServer() {
         }
       });
 
-      if (supaError) {
-        console.warn("Aviso no Supabase Auth (continuando apenas com SQLite):", supaError.message);
-        // We do not return 400 here anymore, because we want to allow local DB creation 
-        // even if Supabase rate limits the anon signUp endpoint.
+      // Se criou no Supabase, atualiza profiles
+      if (supaData?.user) {
+        await supabaseAdmin.from('profiles').upsert({
+          id: supaData.user.id,
+          email,
+          name,
+          role: role || 'technician',
+          phone,
+          knowledge_level: knowledgeLevel,
+          address,
+          status: 'active'
+        });
       }
 
       // Em seguida, cria local
       const hashedPassword = await bcrypt.hash(password, 10);
       const info = db.prepare(`
-        INSERT INTO users (email, password, rawPassword, name, role, phone, knowledgeLevel, address, status) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
-      `).run(email, hashedPassword, password, name, role || 'technician', phone, knowledgeLevel, address);
+        INSERT INTO users (email, password, name, role, phone, knowledgeLevel, address, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+      `).run(email, hashedPassword, name, role || 'technician', phone, knowledgeLevel, address);
       res.json({ id: info.lastInsertRowid });
     } catch (e: any) {
       if (e.message?.includes('UNIQUE constraint failed')) {
@@ -276,8 +298,8 @@ async function startServer() {
 
       db.prepare("DELETE FROM users WHERE id = ?").run(id);
 
-      // Como não temos a chave secreta do Supabase, não conseguimos deletar o usuário lá automaticamente,
-      // mas ao logar, o app pode checar o status local e bloquear se não existir.
+      // Sincroniza com Supabase profiles (removendo a entrada pública)
+      await supabaseAdmin.from('profiles').delete().eq('email', user.email);
 
       res.json({ success: true });
     } catch (e: any) {
@@ -316,6 +338,13 @@ async function startServer() {
     const { id } = req.params;
     try {
       db.prepare(`UPDATE users SET status = 'active' WHERE id = ?`).run(id);
+
+      // Update in Supabase profiles as well
+      const user = db.prepare("SELECT email FROM users WHERE id = ?").get(id) as any;
+      if (user) {
+        await supabaseAdmin.from('profiles').update({ status: 'active' }).eq('email', user.email);
+      }
+
       res.json({ success: true, message: 'Usuário aprovado' });
     } catch (e: any) {
       res.status(500).json({ error: "Erro ao aprovar usuário" });
@@ -333,9 +362,9 @@ async function startServer() {
         const hashedPassword = await bcrypt.hash(password, 10);
         db.prepare(`
           UPDATE users 
-          SET email = ?, name = ?, role = ?, phone = ?, knowledgeLevel = ?, address = ?, password = ?, rawPassword = ?
+          SET email = ?, name = ?, role = ?, phone = ?, knowledgeLevel = ?, address = ?, password = ?
           WHERE id = ?
-        `).run(email, name, role, phone, knowledgeLevel, address, hashedPassword, password, id);
+        `).run(email, name, role, phone, knowledgeLevel, address, hashedPassword, id);
       } else {
         db.prepare(`
           UPDATE users 
@@ -343,6 +372,17 @@ async function startServer() {
           WHERE id = ?
         `).run(email, name, role, phone, knowledgeLevel, address, id);
       }
+
+      // Sync with Supabase profiles
+      await supabaseAdmin.from('profiles').update({
+        email,
+        name,
+        role,
+        phone,
+        knowledge_level: knowledgeLevel,
+        address
+      }).eq('email', email);
+
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: "Erro ao atualizar usuário" });
@@ -732,11 +772,14 @@ async function startServer() {
         c.phone,
         c.city,
         c.state,
-        COALESCE(c.nextServiceDate, (SELECT MIN(nextServiceDate) FROM services WHERE clientId = c.id AND nextServiceDate >= date('now'))) as nextServiceDate
-      FROM clients c
-      HAVING nextServiceDate <= date('now', '+${reminderDays} days') AND nextServiceDate >= date('now')
+        nextServiceDate
+      FROM (
+        SELECT *, COALESCE(nextServiceDate, (SELECT MIN(nextServiceDate) FROM services WHERE clientId = clients.id AND nextServiceDate >= date('now'))) as nextServiceDate
+        FROM clients
+      ) c
+      WHERE nextServiceDate <= date('now', '+' || ? || ' days') AND nextServiceDate >= date('now')
       ORDER BY nextServiceDate ASC
-    `).all();
+    `).all(reminderDays);
 
     const alertsWithDays = alerts.map((a: any) => {
       const today = new Date();

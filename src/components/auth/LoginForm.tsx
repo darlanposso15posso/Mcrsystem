@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Lock, AlertTriangle, ArrowLeft, Shield, Wrench } from 'lucide-react';
+import { User, Lock, AlertTriangle, ArrowLeft, Shield, Wrench, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 
@@ -24,10 +24,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
     const [isRegistering, setIsRegistering] = useState(false);
     const [registerName, setRegisterName] = useState('');
     const [registerPhone, setRegisterPhone] = useState('');
+    const [companyName, setCompanyName] = useState('');
     const [localError, setLocalError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [logoUrl, setLogoUrl] = useState("https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl");
+    const [invitationCompany, setInvitationCompany] = useState<{ id: string, name: string } | null>(null);
 
     useEffect(() => {
         // Fetch logo from Supabase instead of local API
@@ -40,7 +42,34 @@ const LoginForm: React.FC<LoginFormProps> = ({
             }
         };
         fetchLogo();
+
+        // Check for invitation link
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteCompanyId = urlParams.get('invite');
+        const inviteRole = urlParams.get('role');
+
+        if (inviteCompanyId && inviteRole === 'technician') {
+            handleRoleSelection('technician');
+            setIsRegistering(true);
+            fetchInvitingCompany(inviteCompanyId);
+        }
     }, []);
+
+    const fetchInvitingCompany = async (id: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('companies')
+                .select('id, name')
+                .eq('id', id)
+                .single();
+            
+            if (data && !error) {
+                setInvitationCompany(data);
+            }
+        } catch (err) {
+            console.error("Error fetching company from invite:", err);
+        }
+    };
 
     const handleRoleSelection = (role: 'admin' | 'technician') => {
         setSelectedRole(role);
@@ -61,6 +90,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
             return;
         }
 
+        if (selectedRole === 'admin' && !companyName.trim()) {
+            setLocalError('O nome da empresa é obrigatório para novos administradores');
+            return;
+        }
+
         setIsLoading(true);
         try {
             // Register via Supabase Auth
@@ -70,8 +104,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 options: {
                     data: {
                         name: registerName,
-                        role: 'technician',
-                        phone: registerPhone
+                        role: selectedRole,
+                        phone: registerPhone,
+                        company_name: selectedRole === 'admin' ? companyName : undefined,
+                        company_id: selectedRole === 'technician' ? invitationCompany?.id : undefined,
+                        is_new_company: selectedRole === 'admin'
                     }
                 }
             });
@@ -133,21 +170,21 @@ const LoginForm: React.FC<LoginFormProps> = ({
     const displayError = loginError || localError;
 
     return (
-        <div className="min-h-screen bg-[#151619] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-[#151619] flex items-center justify-center p-4 blue-glow">
             <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all mx-4">
-                <div className="p-6 md:p-8 bg-emerald-500 text-white text-center relative">
+                <div className="p-6 md:p-8 bg-blue-600 text-slate-900 text-center relative">
                     {selectedRole && (
                         <button
                             onClick={() => {
                                 setSelectedRole(null);
                                 setIsRegistering(false);
                             }}
-                            className="absolute top-6 left-6 p-2 bg-black/10 hover:bg-black/20 rounded-xl transition-colors"
+                            className="absolute top-6 left-6 p-2 bg-black/10 hover:bg-black/20 rounded-xl transition-colors text-slate-900"
                         >
                             <ArrowLeft size={20} />
                         </button>
                     )}
-                    <div className="bg-white/10 p-4 rounded-2xl inline-block mb-4">
+                    <div className="bg-[var(--card-alt-color)]/80 p-4 rounded-2xl inline-block mb-4">
                         <img
                             src={logoUrl}
                             alt="Logo da Empresa"
@@ -155,8 +192,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
                             referrerPolicy="no-referrer"
                         />
                     </div>
-                    <h1 className="text-2xl font-bold">D&E Hood Cleaning</h1>
-                    <p className="text-white/80 text-sm">
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase italic">MCR <span className="text-slate-900 text-sm">- Management, Compliance & Reports</span></h1>
+                    <p className="text-slate-900 text-sm font-bold uppercase tracking-widest">
                         {selectedRole === 'admin' ? 'Acesso Administrativo' :
                             selectedRole === 'technician' ? 'Acesso do Técnico' :
                                 'Sistema de Gestão Profissional'}
@@ -171,15 +208,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
                         <button
                             onClick={() => handleRoleSelection('admin')}
-                            className="w-full p-6 bg-black/5 hover:bg-emerald-50 border-2 border-transparent hover:border-emerald-500 rounded-2xl transition-all group flex items-center gap-4 text-left"
+                            className="w-full p-6 bg-black/5 hover:bg-blue-50 border-2 border-transparent hover:border-blue-500 rounded-2xl transition-all group flex items-center gap-4 text-left"
                             type="button"
                         >
-                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                                 <Shield size={24} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-lg">Administrador</h3>
-                                <p className="text-xs text-black/40">Gestão completa do sistema</p>
+                                <h3 className="font-bold text-lg text-slate-900">Administrador / Empresa</h3>
+                                <p className="text-xs text-slate-900/60 font-medium tracking-tight">Crie sua empresa ou faça login</p>
                             </div>
                         </button>
 
@@ -192,14 +229,20 @@ const LoginForm: React.FC<LoginFormProps> = ({
                                 <Wrench size={24} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-lg">Técnico</h3>
-                                <p className="text-xs text-black/40">Acesso a serviços e limpezas</p>
+                                <h3 className="font-bold text-lg text-slate-900">Técnico</h3>
+                                <p className="text-xs text-slate-900/60 font-medium tracking-tight">Acesso a um relógio e jis</p>
                             </div>
                         </button>
 
                     </div>
                 ) : (
                     <form onSubmit={isRegistering ? handleRegister : handleLocalLogin} className="p-6 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                        {invitationCompany && (
+                            <div className="bg-blue-600 p-4 rounded-xl text-slate-900 text-sm font-black uppercase italic flex items-center gap-3 animate-pulse border border-blue-400">
+                                <Zap size={18} />
+                                <span>Convite para entrar em: {invitationCompany.name}</span>
+                            </div>
+                        )}
                         {displayError && (
                             <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium flex items-center gap-2">
                                 <AlertTriangle className="shrink-0" size={18} />
@@ -207,7 +250,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                             </div>
                         )}
                         {successMessage && (
-                            <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl text-sm font-medium flex items-start gap-2">
+                            <div className="bg-blue-50 text-blue-600 p-4 rounded-xl text-sm font-medium flex items-start gap-2">
                                 <Shield className="shrink-0 mt-0.5" size={18} />
                                 <span>{successMessage}</span>
                             </div>
@@ -222,7 +265,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                                             <input
                                                 type="text"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-emerald-500"
+                                                className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
                                                 placeholder="Seu nome"
                                                 value={registerName}
                                                 onChange={e => setRegisterName(e.target.value)}
@@ -236,13 +279,29 @@ const LoginForm: React.FC<LoginFormProps> = ({
                                             <input
                                                 type="tel"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-emerald-500"
+                                                className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
                                                 placeholder="(00) 00000-0000"
                                                 value={registerPhone}
                                                 onChange={e => setRegisterPhone(e.target.value)}
                                             />
                                         </div>
                                     </div>
+                                    {selectedRole === 'admin' && (
+                                        <div>
+                                            <label className="text-xs font-bold uppercase text-black/40 mb-1 block">Nome da Sua Empresa</label>
+                                            <div className="relative">
+                                                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-black/20" size={18} />
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
+                                                    placeholder="Ex: Minha Empresa de Limpeza"
+                                                    value={companyName}
+                                                    onChange={e => setCompanyName(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </>
                             )}
                             <div>
@@ -252,7 +311,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                                     <input
                                         type="email"
                                         required
-                                        className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
                                         placeholder="seu@email.com"
                                         value={loginEmail}
                                         onChange={e => setLoginEmail(e.target.value)}
@@ -266,7 +325,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                                     <input
                                         type="password"
                                         required
-                                        className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
                                         placeholder="••••••••"
                                         value={loginPassword}
                                         onChange={e => setLoginPassword(e.target.value)}
@@ -275,41 +334,43 @@ const LoginForm: React.FC<LoginFormProps> = ({
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" disabled={isLoading} className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all disabled:opacity-70">
+                        <button type="submit" disabled={isLoading} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-70">
                             {isLoading ? 'Aguarde...' : isRegistering ? 'Solicitar Cadastro' : 'Entrar'}
                         </button>
 
-                        {selectedRole === 'technician' && !isRegistering && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsRegistering(true);
-                                    setLocalError('');
-                                    setSuccessMessage('');
-                                }}
-                                className="w-full py-4 bg-black/5 text-gray-700 rounded-2xl font-bold hover:bg-black/10 transition-all"
-                            >
-                                Meu 1º Acesso (Criar Conta)
-                            </button>
-                        )}
-                        {selectedRole === 'technician' && isRegistering && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsRegistering(false);
-                                    setLocalError('');
-                                    setSuccessMessage('');
-                                }}
-                                className="w-full py-4 bg-black/5 text-gray-700 rounded-2xl font-bold hover:bg-black/10 transition-all"
-                            >
-                                Já tenho conta (Fazer Login)
-                            </button>
-                        )}
+                         {!isRegistering && (
+                             <button
+                                 type="button"
+                                 onClick={() => {
+                                     setIsRegistering(true);
+                                     setLocalError('');
+                                     setSuccessMessage('');
+                                 }}
+                                 className="w-full py-4 bg-black/5 text-gray-700 rounded-2xl font-bold hover:bg-black/10 transition-all"
+                             >
+                                 {selectedRole === 'admin' ? 'Criar Nova Empresa (SaaS)' : 'Meu 1º Acesso (Criar Conta)'}
+                             </button>
+                         )}
+                         {isRegistering && (
+                             <button
+                                 type="button"
+                                 onClick={() => {
+                                     setIsRegistering(false);
+                                     setLocalError('');
+                                     setSuccessMessage('');
+                                 }}
+                                 className="w-full py-4 bg-black/5 text-gray-700 rounded-2xl font-bold hover:bg-black/10 transition-all"
+                             >
+                                 Já tenho conta (Fazer Login)
+                             </button>
+                         )}
 
 
 
                         <p className="text-center text-xs text-black/40 mt-4">
-                            Ambiente seguro D&E Hood Cleaning.
+                            Ambiente seguro MCR - Management, Compliance & Reports.
+                            <br />
+                            <a href="https://mcrsystem.online" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">mcrsystem.online</a>
                         </p>
                     </form>
                 )}

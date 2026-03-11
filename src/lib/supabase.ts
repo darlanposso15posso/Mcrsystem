@@ -1,6 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || 'https://kokngsijyvfdtobvpswy.supabase.co';
-const supabaseKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtva25nc2lqeXZmZHRvYnZwc3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwODI2MTQsImV4cCI6MjA4NzY1ODYxNH0.EzPCEh5panTyCcDvWnrBoOf3ANB3j7oHhA3rk7aqBLo';
+import { supabaseToken } from './supabaseToken';
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+    console.warn(
+        '[supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not set.\n' +
+        'Add them to .env.local to connect to the database.'
+    );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+    global: {
+        fetch: async (url, options: any = {}) => {
+            const headers = new Headers(options.headers);
+            if (supabaseToken) {
+                headers.set('Authorization', `Bearer ${supabaseToken}`);
+            }
+            return fetch(url, { ...options, headers });
+        },
+    },
+});
