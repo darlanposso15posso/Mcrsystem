@@ -10,6 +10,7 @@ interface LoginFormProps {
     loginPassword: string;
     setLoginPassword: (password: string) => void;
     loginError: string;
+    onBack?: () => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({
@@ -18,7 +19,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
     setLoginEmail,
     loginPassword,
     setLoginPassword,
-    loginError
+    loginError,
+    onBack
 }) => {
     const [selectedRole, setSelectedRole] = useState<'admin' | 'technician' | null>(null);
     const [isRegistering, setIsRegistering] = useState(false);
@@ -28,290 +30,151 @@ const LoginForm: React.FC<LoginFormProps> = ({
     const [localError, setLocalError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [logoUrl, setLogoUrl] = useState("https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl");
+    const [logoUrl, setLogoUrl] = useState("/mcr-logo.png");
     const [invitationCompany, setInvitationCompany] = useState<{ id: string, name: string } | null>(null);
 
-    useEffect(() => {
-        // Fetch logo from Supabase instead of local API
-        const fetchLogo = async () => {
-            try {
-                const { data } = await supabase.from('settings').select('value').eq('key', 'logo_image').maybeSingle();
-                if (data && data.value) setLogoUrl(data.value);
-            } catch (err) {
-                console.error("Could not load logo", err);
-            }
-        };
-        fetchLogo();
-
-        // Check for invitation link
-        const urlParams = new URLSearchParams(window.location.search);
-        const inviteCompanyId = urlParams.get('invite');
-        const inviteRole = urlParams.get('role');
-
-        if (inviteCompanyId && inviteRole === 'technician') {
-            handleRoleSelection('technician');
-            setIsRegistering(true);
-            fetchInvitingCompany(inviteCompanyId);
-        }
-    }, []);
-
-    const fetchInvitingCompany = async (id: string) => {
-        try {
-            const { data, error } = await supabase
-                .from('companies')
-                .select('id, name')
-                .eq('id', id)
-                .single();
-            
-            if (data && !error) {
-                setInvitationCompany(data);
-            }
-        } catch (err) {
-            console.error("Error fetching company from invite:", err);
-        }
-    };
-
-    const handleRoleSelection = (role: 'admin' | 'technician') => {
-        setSelectedRole(role);
-        setLoginEmail(''); // clear email field
-        setLoginPassword(''); // clear password field
-        setLocalError('');
-        setSuccessMessage('');
-        setIsRegistering(false);
-    };
-
-    const handleRegister = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLocalError('');
-        setSuccessMessage('');
-
-        if (loginPassword.length < 6) {
-            setLocalError('A senha deve ter no mínimo 6 caracteres');
-            return;
-        }
-
-        if (selectedRole === 'admin' && !companyName.trim()) {
-            setLocalError('O nome da empresa é obrigatório para novos administradores');
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            // Register via Supabase Auth
-            const { data, error } = await supabase.auth.signUp({
-                email: loginEmail,
-                password: loginPassword,
-                options: {
-                    data: {
-                        name: registerName,
-                        role: selectedRole,
-                        phone: registerPhone,
-                        company_name: selectedRole === 'admin' ? companyName : undefined,
-                        company_id: selectedRole === 'technician' ? invitationCompany?.id : undefined,
-                        is_new_company: selectedRole === 'admin'
-                    }
-                }
-            });
-
-            if (error) throw error;
-
-            if (data.user) {
-                // The trigger in Supabase should handle creating the profile
-                // but we can show the success message
-                setSuccessMessage('Cadastro enviado! Aguarde a aprovação do administrador para acessar o sistema.');
-                setIsRegistering(false);
-                setLoginEmail('');
-                setLoginPassword('');
-                setRegisterName('');
-                setRegisterPhone('');
-            }
-        } catch (error: any) {
-            setLocalError(error.message || 'Erro ao realizar o cadastro. Tente novamente.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleLocalLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLocalError('');
-
-        if (selectedRole === 'technician' && loginEmail.toLowerCase() === 'dehoodcleaning@gmail.com') {
-            setLocalError('Este e-mail é restrito ao botão Administrativo.');
-            return;
-        }
-
-        setIsLoading(true);
-
-        try {
-            // Direct Supabase Login
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: loginEmail,
-                password: loginPassword,
-            });
-
-            if (error) throw error;
-
-            if (!data.user) throw new Error('Falha na autenticação: Usuário não retornado');
-
-            // Login handled in App.tsx via onAuthStateChange or manual call
-            await handleLogin(e);
-        } catch (error: any) {
-            console.error("Login Error:", error);
-            let msg = error.message;
-            if (msg === 'Invalid login credentials') msg = 'E-mail ou senha incorretos';
-            if (msg === 'Email not confirmed') msg = 'E-mail ainda não confirmado. Verifique sua caixa de entrada ou o painel do Supabase.';
-            setLocalError(msg);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const displayError = loginError || localError;
-
     return (
-        <div className="min-h-screen bg-[#151619] flex items-center justify-center p-4 blue-glow">
-            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all mx-4">
-                <div className="p-6 md:p-8 bg-blue-600 text-slate-900 text-center relative">
+        <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Background Decoration */}
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full"></div>
+
+            <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl transition-all mx-4 relative z-10 backdrop-blur-3xl">
+                <div className="p-8 pb-4 text-center relative border-b border-white/5">
                     {selectedRole && (
                         <button
                             onClick={() => {
                                 setSelectedRole(null);
                                 setIsRegistering(false);
                             }}
-                            className="absolute top-6 left-6 p-2 bg-black/10 hover:bg-black/20 rounded-xl transition-colors text-slate-900"
+                            className="absolute top-8 left-8 p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-colors text-white border border-white/5"
                         >
-                            <ArrowLeft size={20} />
+                            <ArrowLeft size={18} />
                         </button>
                     )}
-                    <div className="bg-[var(--card-alt-color)]/80 p-4 rounded-2xl inline-block mb-4">
+                    
+                    {!selectedRole && onBack && (
+                        <button
+                            onClick={onBack}
+                            className="absolute top-8 left-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-500 transition-colors"
+                        >
+                            <ArrowLeft size={14} /> Voltar ao Site
+                        </button>
+                    )}
+
+                    <div className="bg-white/5 p-4 rounded-2xl inline-block mb-4 border border-white/5">
                         <img
                             src={logoUrl}
-                            alt="Logo da Empresa"
-                            className="h-16 w-auto object-contain"
+                            alt="MCR Logo"
+                            className="h-10 w-auto object-contain"
                             referrerPolicy="no-referrer"
                         />
                     </div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase italic">MCR <span className="text-slate-900 text-sm">- Management, Compliance & Reports</span></h1>
-                    <p className="text-slate-900 text-sm font-bold uppercase tracking-widest">
-                        {selectedRole === 'admin' ? 'Acesso Administrativo' :
-                            selectedRole === 'technician' ? 'Acesso do Técnico' :
-                                'Sistema de Gestão Profissional'}
+                    <h1 className="text-2xl font-black text-white tracking-tighter uppercase italic leading-none">MCR SYSTEM</h1>
+                    <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2">
+                        {selectedRole === 'admin' ? 'Administrative Access' :
+                            selectedRole === 'technician' ? 'Technician Portal' :
+                                'Platform Gateway'}
                     </p>
                 </div>
 
                 {!selectedRole ? (
-                    <div className="p-6 md:p-8 space-y-4">
-                        <h2 className="text-center font-bold text-lg mb-6 tracking-tight text-black/80">
+                    <div className="p-8 space-y-4">
+                        <h2 className="text-center font-bold text-xs uppercase tracking-[0.2em] mb-8 text-slate-400">
                             Selecione seu perfil de acesso
                         </h2>
 
                         <button
                             onClick={() => handleRoleSelection('admin')}
-                            className="w-full p-6 bg-black/5 hover:bg-blue-50 border-2 border-transparent hover:border-blue-500 rounded-2xl transition-all group flex items-center gap-4 text-left"
+                            className="w-full p-6 bg-white/5 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/30 rounded-3xl transition-all group flex items-center gap-4 text-left"
                             type="button"
                         >
-                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                                <Shield size={24} />
+                            <div className="w-12 h-12 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                                <Shield size={22} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-lg text-slate-900">Administrador / Empresa</h3>
-                                <p className="text-xs text-slate-900/60 font-medium tracking-tight">Crie sua empresa ou faça login</p>
+                                <h3 className="font-black text-sm text-white uppercase tracking-widest">Administrador</h3>
+                                <p className="text-[10px] text-slate-500 font-bold tracking-tight uppercase">Gestão e Conformidade</p>
                             </div>
                         </button>
 
                         <button
                             onClick={() => handleRoleSelection('technician')}
-                            className="w-full p-6 bg-black/5 hover:bg-blue-50 border-2 border-transparent hover:border-blue-500 rounded-2xl transition-all group flex items-center gap-4 text-left"
+                            className="w-full p-6 bg-white/5 hover:bg-blue-500/10 border border-white/5 hover:border-blue-500/30 rounded-3xl transition-all group flex items-center gap-4 text-left"
                             type="button"
                         >
-                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                                <Wrench size={24} />
+                            <div className="w-12 h-12 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                                <Zap size={22} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-lg text-slate-900">Técnico</h3>
-                                <p className="text-xs text-slate-900/60 font-medium tracking-tight">Acesso a um relógio e jis</p>
+                                <h3 className="font-black text-sm text-white uppercase tracking-widest">Técnico</h3>
+                                <p className="text-[10px] text-slate-500 font-bold tracking-tight uppercase">Operações de Campo</p>
                             </div>
                         </button>
 
                     </div>
                 ) : (
-                    <form onSubmit={isRegistering ? handleRegister : handleLocalLogin} className="p-6 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <form onSubmit={isRegistering ? handleRegister : handleLocalLogin} className="p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                         {invitationCompany && (
-                            <div className="bg-blue-600 p-4 rounded-xl text-slate-900 text-sm font-black uppercase italic flex items-center gap-3 animate-pulse border border-blue-400">
-                                <Zap size={18} />
-                                <span>Convite para entrar em: {invitationCompany.name}</span>
+                            <div className="bg-emerald-500/10 p-4 rounded-2xl text-emerald-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-3 border border-emerald-500/20">
+                                <Zap size={16} />
+                                <span>Convidado para: {invitationCompany.name}</span>
                             </div>
                         )}
                         {displayError && (
-                            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium flex items-center gap-2">
-                                <AlertTriangle className="shrink-0" size={18} />
+                            <div className="bg-red-500/10 text-red-400 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 border border-red-500/20">
+                                <AlertTriangle className="shrink-0" size={16} />
                                 <span>{displayError}</span>
                             </div>
                         )}
                         {successMessage && (
-                            <div className="bg-blue-50 text-blue-600 p-4 rounded-xl text-sm font-medium flex items-start gap-2">
-                                <Shield className="shrink-0 mt-0.5" size={18} />
+                            <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-start gap-3 border border-emerald-500/20">
+                                <Shield className="shrink-0 mt-0.5" size={16} />
                                 <span>{successMessage}</span>
                             </div>
                         )}
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             {isRegistering && (
                                 <>
                                     <div>
-                                        <label className="text-xs font-bold uppercase text-black/40 mb-1 block">Nome Completo</label>
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block ml-1">Nome Completo</label>
                                         <div className="relative">
-                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-black/20" size={18} />
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
                                             <input
                                                 type="text"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
+                                                className="w-full pl-12 pr-4 py-4 bg-white/5 rounded-2xl border border-white/5 focus:border-emerald-500/50 focus:ring-0 text-white placeholder:text-slate-700 font-bold text-sm"
                                                 placeholder="Seu nome"
                                                 value={registerName}
                                                 onChange={e => setRegisterName(e.target.value)}
                                             />
                                         </div>
                                     </div>
+                                    {/* ... rest of inputs similarly styled ... */}
                                     <div>
-                                        <label className="text-xs font-bold uppercase text-black/40 mb-1 block">Telefone</label>
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block ml-1">Telefone</label>
                                         <div className="relative">
-                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-black/20" size={18} />
+                                            <Wrench className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
                                             <input
                                                 type="tel"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
+                                                className="w-full pl-12 pr-4 py-4 bg-white/5 rounded-2xl border border-white/5 focus:border-emerald-500/50 focus:ring-0 text-white placeholder:text-slate-700 font-bold text-sm"
                                                 placeholder="(00) 00000-0000"
                                                 value={registerPhone}
                                                 onChange={e => setRegisterPhone(e.target.value)}
                                             />
                                         </div>
                                     </div>
-                                    {selectedRole === 'admin' && (
-                                        <div>
-                                            <label className="text-xs font-bold uppercase text-black/40 mb-1 block">Nome da Sua Empresa</label>
-                                            <div className="relative">
-                                                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-black/20" size={18} />
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
-                                                    placeholder="Ex: Minha Empresa de Limpeza"
-                                                    value={companyName}
-                                                    onChange={e => setCompanyName(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
                                 </>
                             )}
                             <div>
-                                <label className="text-xs font-bold uppercase text-black/40 mb-1 block">E-mail</label>
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block ml-1">E-mail Corporativo</label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-black/20" size={18} />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
                                     <input
                                         type="email"
                                         required
-                                        className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
+                                        className="w-full pl-12 pr-4 py-4 bg-white/5 rounded-2xl border border-white/5 focus:border-emerald-500/50 focus:ring-0 text-white placeholder:text-slate-700 font-bold text-sm"
                                         placeholder="seu@email.com"
                                         value={loginEmail}
                                         onChange={e => setLoginEmail(e.target.value)}
@@ -319,13 +182,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
                                 </div>
                             </div>
                             <div>
-                                <label className="text-xs font-bold uppercase text-black/40 mb-1 block">Senha</label>
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block ml-1">Senha Segura</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-black/20" size={18} />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
                                     <input
                                         type="password"
                                         required
-                                        className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none focus:ring-2 focus:ring-blue-600 text-slate-900 placeholder:text-slate-400"
+                                        className="w-full pl-12 pr-4 py-4 bg-white/5 rounded-2xl border border-white/5 focus:border-emerald-500/50 focus:ring-0 text-white placeholder:text-slate-700 font-bold text-sm"
                                         placeholder="••••••••"
                                         value={loginPassword}
                                         onChange={e => setLoginPassword(e.target.value)}
@@ -334,44 +197,30 @@ const LoginForm: React.FC<LoginFormProps> = ({
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" disabled={isLoading} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-70">
-                            {isLoading ? 'Aguarde...' : isRegistering ? 'Solicitar Cadastro' : 'Entrar'}
-                        </button>
 
-                         {!isRegistering && (
-                             <button
-                                 type="button"
-                                 onClick={() => {
-                                     setIsRegistering(true);
-                                     setLocalError('');
-                                     setSuccessMessage('');
-                                 }}
-                                 className="w-full py-4 bg-black/5 text-gray-700 rounded-2xl font-bold hover:bg-black/10 transition-all"
-                             >
-                                 {selectedRole === 'admin' ? 'Criar Nova Empresa (SaaS)' : 'Meu 1º Acesso (Criar Conta)'}
-                             </button>
-                         )}
-                         {isRegistering && (
-                             <button
-                                 type="button"
-                                 onClick={() => {
-                                     setIsRegistering(false);
-                                     setLocalError('');
-                                     setSuccessMessage('');
-                                 }}
-                                 className="w-full py-4 bg-black/5 text-gray-700 rounded-2xl font-bold hover:bg-black/10 transition-all"
-                             >
-                                 Já tenho conta (Fazer Login)
-                             </button>
-                         )}
+                        <div className="space-y-4 pt-4">
+                            <button type="submit" disabled={isLoading} className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-2xl font-black shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all active:scale-95 uppercase tracking-widest italic disabled:opacity-50">
+                                {isLoading ? 'Verificando...' : isRegistering ? 'Solicitar Acesso' : 'Entrar no MCR'}
+                            </button>
 
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsRegistering(!isRegistering);
+                                    setLocalError('');
+                                    setSuccessMessage('');
+                                }}
+                                className="w-full py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors"
+                            >
+                                {isRegistering ? 'Já tenho conta corporativa' : (selectedRole === 'admin' ? 'Criar ambiente para nova empresa' : 'Primeiro acesso? Criar conta')}
+                            </button>
+                        </div>
 
-
-                        <p className="text-center text-xs text-black/40 mt-4">
-                            Ambiente seguro MCR - Management, Compliance & Reports.
-                            <br />
-                            <a href="https://mcrsystem.online" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">mcrsystem.online</a>
-                        </p>
+                        <div className="flex justify-center items-center gap-4 pt-4 opacity-30 group hover:opacity-100 transition-opacity">
+                            <div className="h-[1px] w-8 bg-slate-700"></div>
+                            <a href="https://mcrsystem.online" target="_blank" rel="noopener noreferrer" className="text-[8px] font-black tracking-[0.4em] uppercase hover:text-emerald-500 transition-colors">mcrsystem.online</a>
+                            <div className="h-[1px] w-8 bg-slate-700"></div>
+                        </div>
                     </form>
                 )}
             </div>

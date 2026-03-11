@@ -402,6 +402,7 @@ function App() {
           loginPassword={loginPassword}
           setLoginPassword={setLoginPassword}
           loginError={loginError}
+          onBack={() => setIsLoggingIn(false)}
         />
       );
     }
