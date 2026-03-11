@@ -1,5 +1,23 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Shield, Zap, Clock, Smartphone, ArrowRight, BarChart3, Users, Calendar, Activity, Camera, Globe } from 'lucide-react';
+import { 
+    CheckCircle2, 
+    Shield, 
+    Zap, 
+    Clock, 
+    Smartphone, 
+    ArrowRight, 
+    BarChart3, 
+    Users, 
+    Calendar, 
+    Activity, 
+    Camera, 
+    Globe,
+    ChevronRight,
+    Star,
+    Layers,
+    FileSearch,
+    Cpu
+} from 'lucide-react';
 
 interface LandingPageProps {
     onLogin: () => void;
@@ -7,28 +25,44 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'tech' | 'calendar'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'management' | 'compliance' | 'reports'>('management');
     const logoUrl = "/mcr-logo.png";
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-600/30 selection:text-blue-900">
+        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+            {/* BACKGROUND DECORATION */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full"></div>
+                <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-cyan-500/5 blur-[100px] rounded-full"></div>
+            </div>
+
             {/* HEADER */}
-            <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+            <nav className="border-b border-white/5 bg-slate-950/40 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         {/* Logo */}
-                        <div className="flex items-center gap-3">
-                            <img src={logoUrl} alt="Logo" className="h-10 w-auto" />
-                            <span className="font-extrabold text-xl tracking-tight text-slate-900 italic">MCR <span className="text-blue-600 text-xs font-black uppercase not-italic">- Compliance</span></span>
+                        <div className="flex items-center gap-3 group">
+                            <div className="relative">
+                                <img src={logoUrl} alt="Logo" className="h-10 w-auto relative z-10 transition-transform group-hover:scale-110" />
+                                <div className="absolute inset-0 bg-emerald-500/20 blur-md rounded-full scale-0 group-hover:scale-150 transition-transform duration-500"></div>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-black text-xl tracking-tighter text-white leading-none">MCR</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 leading-none mt-1">SaaS Platform</span>
+                            </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-4">
-                            <button onClick={onLogin} className="text-slate-600 hover:text-blue-600 font-bold px-4 py-2 transition-colors">
-                                Entrar
+                        <div className="flex items-center gap-6">
+                            <button onClick={onLogin} className="text-slate-400 hover:text-white font-bold text-sm transition-all uppercase tracking-widest flex items-center gap-2">
+                                Login <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                             </button>
-                            <button onClick={onStartTrial} className="bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-2.5 rounded-full shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5 active:scale-95 uppercase tracking-widest text-xs">
-                                Teste Grátis
+                            <button onClick={onStartTrial} className="relative group">
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full blur opacity-40 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                                <div className="relative bg-slate-950 hover:bg-slate-900 text-white font-black px-6 py-2.5 rounded-full shadow-lg transition-all active:scale-95 uppercase tracking-widest text-xs border border-white/10">
+                                    Trial Grátis
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -36,225 +70,276 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
             </nav>
 
             {/* HERO SECTION */}
-            <section className="relative overflow-hidden pt-20 pb-32 lg:pt-32">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-[var(--bg-color)] to-[var(--bg-color)] -z-10"></div>
+            <section className="relative pt-24 pb-32 lg:pt-36 flex flex-col items-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-bold text-sm mb-8 border border-blue-200">
-                        <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
-                        A solução definitiva para empresas de serviços na rua
+                    <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-emerald-500/5 text-emerald-400 font-black text-[10px] mb-12 border border-emerald-500/20 uppercase tracking-[0.2em] animate-fade-in shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+                        <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Management, Compliance & Reports Authority
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight mb-8 leading-tight">
-                        Gestão, Conformidade e <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800">
-                            Relatórios para Coifas.
+                    
+                    <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter mb-8 leading-[0.9] animate-slide-up">
+                        A Nova Era do <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 drop-shadow-sm">
+                            Hood Cleaning.
                         </span>
                     </h1>
-                    <p className="mt-4 text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
-                        Certificação NFPA, controle de técnicos, históricos fotográficos e relatórios profissionais.
-                        A plataforma definitiva para especialistas em **Hood Cleaning**.
+                    
+                    <p className="mt-8 text-xl md:text-2xl text-slate-400 max-w-4xl mx-auto mb-12 leading-relaxed font-medium animate-slide-up" style={{ animationDelay: '100ms' }}>
+                        Transforme sua operação com tecnologia de conformidade **NFPA**. 
+                        Relatórios inteligentes, gestão de técnicos e automação de campo em uma única plataforma premium.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <button onClick={onStartTrial} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white font-black text-lg px-8 py-4 rounded-full shadow-xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 transition-all active:scale-95 uppercase tracking-widest">
-                            Começar Teste Grátis de 15 Dias <ArrowRight size={20} />
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
+                        <button onClick={onStartTrial} className="group relative w-full sm:w-auto overflow-hidden rounded-2xl">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-cyan-600 group-hover:scale-110 transition-transform duration-500"></div>
+                            <div className="relative flex items-center justify-center gap-3 text-white font-black text-lg px-10 py-5 rounded-2xl shadow-2xl transition-all active:scale-95 uppercase tracking-widest">
+                                Iniciar Jornada <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                            </div>
                         </button>
-                        <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 text-white font-black text-lg px-8 py-4 rounded-full shadow-xl shadow-red-600/20 hover:bg-red-700 hover:-translate-y-1 transition-all active:scale-95 uppercase tracking-widest">
-                            Falar com Suporte <Zap size={20} />
+                        <button className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 text-white font-black text-lg px-10 py-5 rounded-2xl border border-white/10 transition-all active:scale-95 uppercase tracking-widest backdrop-blur-sm">
+                            Tour do Sistema <Activity size={22} />
                         </button>
                     </div>
-                    <div className="mt-6 flex items-center justify-center gap-6 text-sm font-bold text-slate-500 hidden sm:flex">
-                        <div className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-blue-600" /> Sem cartão para testar</div>
-                        <div className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-blue-600" /> Cancelamento a qualquer momento</div>
-                        <div className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-blue-600" /> Setup em 2 minutos</div>
+
+                    <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '400ms' }}>
+                        {[
+                            { label: 'NFPA Compliance', icon: <Shield size={16} /> },
+                            { label: 'Instant Reports', icon: <BarChart3 size={16} /> },
+                            { label: 'Cloud Secured', icon: <Globe size={16} /> },
+                            { label: 'Mobile Ready', icon: <Smartphone size={16} /> },
+                        ].map((stat, i) => (
+                            <div key={i} className="flex flex-col items-center gap-2">
+                                <div className="text-emerald-500 opacity-60">{stat.icon}</div>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{stat.label}</span>
+                            </div>
+                        ))}
                     </div>
 
-                    {/* INTERACTIVE SHOWCASE */}
-                    <div className="mt-24 relative max-w-6xl mx-auto">
-                        <div className="text-center mb-12">
-                            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-6 uppercase italic">
-                                Veja o sistema por <span className="text-blue-600 underline decoration-blue-600/30">dentro.</span>
-                            </h2>
-
-                            {/* Tabs */}
-                            <div className="inline-flex bg-slate-100 p-1.5 rounded-full shadow-inner border border-slate-200 overflow-x-auto max-w-full">
-                                <button
-                                    onClick={() => setActiveTab('dashboard')}
-                                    className={`px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600'}`}
-                                >
-                                    Painel Gerencial
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('calendar')}
-                                    className={`px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'calendar' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600'}`}
-                                >
-                                    Agendamentos
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('tech')}
-                                    className={`px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'tech' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-blue-600'}`}
-                                >
-                                    Visão do Técnico
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Showcase Window */}
-                        <div className="bg-white rounded-2xl md:rounded-t-2xl md:rounded-b-none p-2 md:border-x-[8px] md:border-t-[8px] border-slate-200 shadow-2xl relative">
-                            {/* Window Controls */}
-                            <div className="hidden md:flex gap-2 mb-3 bg-white items-center px-2">
-                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                            </div>
-
-                            {/* Screen Content */}
-                            <div className="bg-slate-50 aspect-[4/3] md:aspect-[16/9] rounded-lg overflow-hidden flex flex-col items-center justify-center border border-slate-200 relative group transition-all duration-500">
-
-                                {activeTab === 'dashboard' && (
-                                    <>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=2070"
-                                            alt="Dashboard Preview"
-                                            className="object-cover w-full h-full opacity-40 transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                        <div className="absolute bottom-6 left-6 md:top-6 md:bottom-auto md:right-6 md:left-auto bg-blue-600 text-white font-black uppercase tracking-widest text-xs px-6 py-3 rounded-xl flex items-center gap-3 shadow-2xl">
-                                            <Activity size={18} /> Controle Total
+                    {/* FUTURISTIC SHOWCASE */}
+                    <div className="mt-32 relative max-w-6xl mx-auto animate-slide-up" style={{ animationDelay: '500ms' }}>
+                        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[120%] h-[120%] bg-emerald-500/10 blur-[150px] -z-10 rounded-full"></div>
+                        
+                        <div className="relative group">
+                            {/* Glass Container */}
+                            <div className="bg-slate-900/40 backdrop-blur-3xl rounded-[2.5rem] p-4 border border-white/10 shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden">
+                                <div className="bg-slate-950/80 rounded-[2rem] overflow-hidden border border-white/5 relative aspect-video group-hover:border-emerald-500/20 transition-colors duration-500">
+                                    <img 
+                                        src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=2070" 
+                                        className="w-full h-full object-cover opacity-20 filter grayscale hover:grayscale-0 hover:opacity-40 transition-all duration-1000"
+                                        alt="MCR Dashboard Preview"
+                                    />
+                                    
+                                    {/* Floating UI Elements */}
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6">
+                                        <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.5)] animate-bounce cursor-pointer hover:scale-110 transition-transform">
+                                            <div className="w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-l-[14px] border-l-slate-950 ml-1"></div>
                                         </div>
-                                    </>
-                                )}
+                                        <span className="text-xs font-black uppercase tracking-[0.4em] text-white">Watch Platform Demo</span>
+                                    </div>
 
-                                {activeTab === 'calendar' && (
-                                    <>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&q=80&w=2069"
-                                            alt="Calendar Preview"
-                                            className="object-cover w-full h-full opacity-40 transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                        <div className="absolute bottom-6 left-6 md:top-6 md:bottom-auto md:right-6 md:left-auto bg-blue-600 text-white font-black uppercase tracking-widest text-xs px-6 py-3 rounded-xl flex items-center gap-3 shadow-2xl">
-                                            <Calendar size={18} /> Organização Visual
+                                    {/* Abstract Data Decoration */}
+                                    <div className="absolute top-8 left-8 p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl hidden md:block">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                            <span className="text-[10px] font-black text-white tracking-widest uppercase">System Uptime</span>
                                         </div>
-                                    </>
-                                )}
-
-                                {activeTab === 'tech' && (
-                                    <>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?auto=format&fit=crop&q=80&w=2070"
-                                            alt="Tech App Preview"
-                                            className="object-cover w-full h-full opacity-40 object-left-top transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                        <div className="absolute bottom-6 left-6 md:top-6 md:bottom-auto md:right-6 md:left-auto bg-blue-600 text-white font-black uppercase tracking-widest text-xs px-6 py-3 rounded-xl flex items-center gap-3 shadow-2xl">
-                                            <Smartphone size={18} /> Interface Mobile
+                                        <div className="h-12 w-32 flex items-end gap-1">
+                                            {[40, 70, 45, 90, 65, 80, 55].map((h, i) => (
+                                                <div key={i} className="flex-1 bg-emerald-500/40 rounded-sm" style={{ height: `${h}%` }}></div>
+                                            ))}
                                         </div>
-                                    </>
-                                )}
-
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* FEATURES COMPONENT */}
-            <section className="py-24 bg-white">
+            {/* PILLARS OF AUTHORITY */}
+            <section className="py-32 bg-slate-950 relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight uppercase italic">
-                            O padrão ouro em <span className="text-blue-600">Certificação.</span>
-                        </h2>
-                        <p className="mt-4 text-lg text-slate-600 font-bold">Gerencie sua empresa de Limpeza de Coifa com a autoridade que seus clientes exigem.</p>
+                    <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-24">
+                        <div className="max-w-2xl">
+                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-6 uppercase italic">
+                                Os Pilares da <br />
+                                <span className="text-emerald-500 uppercase not-italic">Autoridade.</span>
+                            </h2>
+                            <p className="text-xl text-slate-400 font-medium">MCR não é apenas um software, é o seu novo padrão de excelência em conformidade e relatórios.</p>
+                        </div>
+                        <div className="flex gap-4 p-2 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                            <button onClick={() => setActiveTab('management')} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'management' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>Management</button>
+                            <button onClick={() => setActiveTab('compliance')} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'compliance' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>Compliance</button>
+                            <button onClick={() => setActiveTab('reports')} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'reports' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>Reports</button>
+                        </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {/* Feature 1 */}
-                        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 hover:border-blue-500/30 transition-all group relative overflow-hidden">
-                            <div className="w-14 h-14 bg-blue-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
-                                <Users size={28} />
-                            </div>
-                            <h3 className="text-xl font-black text-slate-900 mb-3 uppercase tracking-tight">Gestão de Clientes CRM</h3>
-                            <p className="text-slate-600 leading-relaxed font-bold">Cadastre todos os clientes, endereços, e veja exatamente quando foi a última visita. Mantenha os históricos organizados e acessíveis.</p>
+                    <div className="grid md:grid-cols-2 gap-16 items-center">
+                        <div className="space-y-12">
+                            {activeTab === 'management' && (
+                                <div className="animate-fade-in">
+                                    <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 mb-8 border border-emerald-500/20">
+                                        <Cpu size={32} />
+                                    </div>
+                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Gestão Inteligente</h3>
+                                    <p className="text-lg text-slate-400 leading-relaxed mb-8">
+                                        Controle total sobre clientes, técnicos e agendamentos. Nosso motor de IA prevê datas de serviço e automatiza o fluxo de trabalho para que você foque no crescimento.
+                                    </p>
+                                    <ul className="space-y-4">
+                                        {['Automação de Recorrência', 'Controle de Equipes em Campo', 'CRM Especializado'].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-white font-bold text-sm">
+                                                <CheckCircle2 size={18} className="text-emerald-500" /> {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {activeTab === 'compliance' && (
+                                <div className="animate-fade-in">
+                                    <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-500 mb-8 border border-cyan-500/20">
+                                        <Shield size={32} />
+                                    </div>
+                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Rigor na Conformidade</h3>
+                                    <p className="text-lg text-slate-400 leading-relaxed mb-8">
+                                        Checklists digitais baseados nos padrões NFPA 96. Garanta que cada centímetro limpo esteja documentado e dentro das normas de segurança internacionais.
+                                    </p>
+                                    <ul className="space-y-4">
+                                        {['Padrão NFPA 96 Integrado', 'Garantia de Segurança contra Incêndio', 'Certificações Digitais'].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-white font-bold text-sm">
+                                                <CheckCircle2 size={18} className="text-cyan-500" /> {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {activeTab === 'reports' && (
+                                <div className="animate-fade-in">
+                                    <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 mb-8 border border-blue-500/20">
+                                        <FileSearch size={32} />
+                                    </div>
+                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Relatórios de Elite</h3>
+                                    <p className="text-lg text-slate-400 leading-relaxed mb-8">
+                                        Gere relatórios fotográficos de "Antes e Depois" em segundos. Documentação visual inegável que fecha contratos e mantém a confiança dos seus clientes.
+                                    </p>
+                                    <ul className="space-y-4">
+                                        {['Geração de PDF Automática', 'Histórico Fotográfico em Nuvem', 'Personalização com sua Marca'].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-white font-bold text-sm">
+                                                <CheckCircle2 size={18} className="text-blue-500" /> {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Feature 2 */}
-                        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
-                            <div className="w-14 h-14 bg-blue-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
-                                <Calendar size={28} />
+                        <div className="relative">
+                            <div className="absolute -inset-10 bg-emerald-500/10 blur-[80px] -z-10 rounded-full"></div>
+                            <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 aspect-square flex items-center justify-center relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                                <img 
+                                    src={logoUrl} 
+                                    alt="MCR Mark" 
+                                    className="h-48 w-auto relative z-10 transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12" 
+                                />
+                                <div className="absolute bottom-12 right-12 flex items-center gap-3 text-[10px] font-black text-emerald-500 uppercase tracking-[0.5em] opacity-40">
+                                    <div className="w-12 h-[1px] bg-emerald-500"></div> MCR Certified
+                                </div>
                             </div>
-                            <h3 className="text-xl font-black text-slate-900 mb-3 uppercase tracking-tight">Calendário Inteligente</h3>
-                            <p className="text-slate-600 leading-relaxed font-bold">Controle de agendamentos visuais. Saiba quem está atrasado, quais os serviços de hoje, e projete o faturamento mensal automaticamente.</p>
-                        </div>
-
-                        {/* Feature 3 */}
-                        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
-                            <div className="w-14 h-14 bg-blue-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
-                                <Smartphone size={28} />
-                            </div>
-                            <h3 className="text-xl font-black text-slate-900 mb-3 uppercase tracking-tight">App para os Técnicos</h3>
-                            <p className="text-slate-600 leading-relaxed font-bold">O seu técnico tem seu próprio login na rua. Ele vê exatamente o que precisa fazer, preenche checklists, tira fotos e encerra o chamado do celular.</p>
-                        </div>
-
-                        {/* Feature 4 */}
-                        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
-                            <div className="w-14 h-14 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm">
-                                <Camera size={28} />
-                            </div>
-                            <h3 className="text-xl font-black text-slate-900 mb-3 uppercase tracking-tight">Relatórios c/ Fotos</h3>
-                            <p className="text-slate-600 leading-relaxed font-bold">Geração instantânea de relatórios PDF com fotos de "Antes e Depois" vinculadas à sua logo, prontos para enviar direto ao cliente final.</p>
-                        </div>
-
-                        {/* Feature 5 */}
-                        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
-                            <div className="w-14 h-14 bg-blue-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
-                                <Zap size={28} />
-                            </div>
-                            <h3 className="text-xl font-black text-slate-900 mb-3 uppercase tracking-tight">Automação e Lembretes</h3>
-                            <p className="text-slate-600 leading-relaxed font-bold">O sistema se lembra de calcular os próximos agendamentos e cria alertas proativos evitando que você perca prazos dos clientes recorrentes.</p>
-                        </div>
-
-                        {/* Feature 6 */}
-                        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 hover:border-emerald-500/30 transition-all group relative overflow-hidden">
-                            <div className="w-14 h-14 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm">
-                                <Shield size={28} />
-                            </div>
-                            <h3 className="text-xl font-black text-slate-900 mb-3 uppercase tracking-tight">Privacidade Absoluta</h3>
-                            <p className="text-slate-600 leading-relaxed font-bold">Arquitetura avançada em Nuvem garante que a sua base de dados e de seus clientes é exclusiva, criptografada e inviolável.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
+            {/* TRUSTED BY PROS */}
+            <section className="py-24 border-y border-white/5 bg-slate-950/50 backdrop-blur-sm">
+                <div className="max-w-7xl mx-auto px-4 text-center">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.8em] mb-12 block">Built for the Best in Industry</span>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-12 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
+                        {/* Mock Logos */}
+                        <div className="flex items-center justify-center font-black text-2xl italic tracking-tighter">HOODPRO</div>
+                        <div className="flex items-center justify-center font-black text-2xl italic tracking-tighter">CERTIFIED CLEAN</div>
+                        <div className="flex items-center justify-center font-black text-2xl italic tracking-tighter">SAFETY FIRST</div>
+                        <div className="flex items-center justify-center font-black text-2xl italic tracking-tighter">NFPA PARTNERS</div>
+                    </div>
+                </div>
+            </section>
 
-
-            {/* CTA FOOTER */}
-            <section className="bg-blue-600 py-32 border-t border-blue-500 relative overflow-hidden text-center">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                <div className="max-w-4xl mx-auto px-4 relative z-10">
-                    <h2 className="text-4xl md:text-6xl font-black mb-6 text-white uppercase italic tracking-tighter">Pronto para dar o próximo passo?</h2>
-                    <p className="text-xl text-emerald-50 mb-12 font-bold max-w-2xl mx-auto">
-                        Junte-se às empresas que modernizaram as suas operações de campo. Crie a sua conta agora e use 100% dos recursos, grátis por 15 dias.
+            {/* CALL TO ACTION */}
+            <section className="relative py-40 overflow-hidden text-center">
+                <div className="absolute inset-0 bg-emerald-500/5 -z-10 bg-[radial-gradient(circle_at_center,_transparent_0%,_#020617_70%)]"></div>
+                
+                <div className="max-w-4xl mx-auto px-4">
+                    <div className="inline-flex items-center gap-2 text-emerald-500 mb-8 p-3 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                        <Star size={20} fill="currentColor" />
+                        <Star size={20} fill="currentColor" />
+                        <Star size={20} fill="currentColor" />
+                        <Star size={20} fill="currentColor" />
+                        <Star size={20} fill="currentColor" />
+                    </div>
+                    <h2 className="text-5xl md:text-7xl font-black text-white mb-10 tracking-tighter uppercase italic">Assuma o controle total hoje.</h2>
+                    <p className="text-xl md:text-2xl text-slate-400 mb-16 font-medium leading-relaxed max-w-3xl mx-auto">
+                        Pare de perder tempo com planilhas e relatórios manuais. Mude para a plataforma que coloca o seu negócio no piloto automático.
                     </p>
-                    <button onClick={onStartTrial} className="bg-white text-blue-600 font-black text-2xl px-12 py-6 rounded-xl shadow-2xl hover:bg-emerald-50 hover:scale-105 transition-all active:scale-95 uppercase tracking-widest italic border-b-4 border-blue-800">
-                        Iniciar Meus 15 Dias Grátis
-                    </button>
+                    
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                        <button onClick={onStartTrial} className="group relative w-full sm:w-auto overflow-hidden rounded-2xl">
+                            <div className="absolute inset-0 bg-emerald-600"></div>
+                            <div className="relative flex items-center justify-center gap-3 text-slate-950 font-black text-xl px-12 py-6 rounded-2xl shadow-[0_0_40px_rgba(16,185,129,0.3)] transition-all group-hover:scale-105 active:scale-95 uppercase tracking-[0.2em] italic">
+                                Criar Minha Conta <ChevronRight size={24} />
+                            </div>
+                        </button>
+                    </div>
+                    <p className="mt-8 text-slate-600 font-bold uppercase text-[10px] tracking-widest">Setup instantâneo • Sem cartão • 15 dias grátis</p>
                 </div>
             </section>
 
             {/* FOOTER */}
-            <footer className="bg-white text-slate-500 py-16 text-center border-t border-slate-200">
+            <footer className="bg-slate-950 text-slate-600 py-24 border-t border-white/5">
                 <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex justify-center items-center gap-3 mb-6">
-                        <img src={logoUrl} alt="Logo" className="h-10 w-auto" />
-                        <span className="font-extrabold text-slate-900 tracking-widest uppercase text-sm italic">MCR Platform Authority</span>
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-12 mb-16">
+                        <div className="flex items-center gap-3">
+                            <img src={logoUrl} alt="Logo" className="h-8 w-auto opacity-50 grayscale" />
+                            <span className="font-black text-slate-500 tracking-tighter text-xl">MCR PLATFORM</span>
+                        </div>
+                        <div className="flex gap-12 text-[10px] font-black uppercase tracking-[0.3em]">
+                            <a href="#" className="hover:text-emerald-500 transition-colors">Products</a>
+                            <a href="#" className="hover:text-emerald-500 transition-colors">Pricing</a>
+                            <a href="#" className="hover:text-emerald-500 transition-colors">Terms</a>
+                            <a href="#" className="hover:text-emerald-500 transition-colors">Privacy</a>
+                        </div>
                     </div>
-                    <p className="text-xs font-bold uppercase tracking-widest opacity-40">
-                        © {new Date().getFullYear()} MCR - Management, Compliance & Reports. 
-                        <br />
-                        Plataforma Oficial de Gestão de Conformidade
-                        <br />
-                        <a href="https://mcrsystem.online" className="hover:text-blue-600 transition-colors">mcrsystem.online</a>
-                    </p>
+                    
+                    <div className="flex flex-col md:flex-row justify-between items-end gap-8 pt-12 border-t border-white/5">
+                        <div className="text-left">
+                            <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-slate-400 opacity-60">
+                                © {new Date().getFullYear()} MCR - Management, Compliance & Reports. 
+                            </p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500/40">
+                                Official Compliance Management Platform
+                            </p>
+                        </div>
+                        <a href="https://mcrsystem.online" className="text-slate-500 hover:text-emerald-500 font-black text-xs uppercase tracking-widest transition-colors flex items-center gap-2 group">
+                            mcrsystem.online <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                        </a>
+                    </div>
                 </div>
             </footer>
+
+            {/* CSS ANIMATIONS */}
+            <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes fade-in {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slide-up {
+                    from { opacity: 0; transform: translateY(30px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in { animation: fade-in 1s ease-out forwards; }
+                .animate-slide-up { animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+            ` }} />
         </div>
     );
 };
