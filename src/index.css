@@ -2,8 +2,8 @@
 @import "tailwindcss";
 
 /* ============================================================
-   D&E Hood Cleaning — Design Tokens (PREMIUM DARK MODE)
-   Style: Deep Navy, High Contrast, Tiimi Yellow Accents
+   MCR Platform — Design System (PREMIUM DARK MODE)
+   Style: Deep Slate, Glassmorphism, Emerald Accents
    ============================================================ */
 
 @theme {
@@ -11,8 +11,8 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* ── Brand colors ────────────────────────────────────────── */
-  --color-primary: var(--primary-color, #3b82f6); 
-  --color-primary-hover: var(--primary-color-hover, #2563eb);
+  --color-primary: var(--primary-color, #10b981); 
+  --color-primary-hover: var(--primary-color-hover, #059669);
   --color-danger: #F43F5E;  
   --color-info: #3B82F6;    
   
@@ -35,18 +35,31 @@
 
 :root {
   --bg-color: #020617;
-  --card-color: #111827;
-  --card-alt-color: #1f2937;
-  --primary-color: #3b82f6;
-  --primary-color-hover: #2563eb;
-  --sidebar-bg: #111827;
-  --header-bg: rgba(17, 24, 39, 0.8);
-  --text-primary: #f9fafb;
-  --text-muted: #9ca3af;
-  --text-faint: #6b7280;
-  --border-color: rgba(255, 255, 255, 0.1);
+  --card-color: #0f172a;
+  --card-alt-color: #1e293b;
+  --primary-color: #10b981;
+  --primary-color-hover: #059669;
+  --sidebar-bg: #020617;
+  --header-bg: rgba(15, 23, 42, 0.8);
+  --text-primary: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --border-color: rgba(255, 255, 255, 0.08);
   --border-muted: rgba(255, 255, 255, 0.05);
   --font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer utilities {
+  .animate-loading-progress {
+    animation: loading-progress 2s ease-in-out infinite;
+  }
+}
+
+@keyframes loading-progress {
+  0% { transform: scaleX(0); transform-origin: left; }
+  45% { transform: scaleX(1); transform-origin: left; }
+  50% { transform: scaleX(1); transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
 }
 
 body {
