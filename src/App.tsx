@@ -60,6 +60,7 @@ function App() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   // ── Settings (theme, language, segment) ─────────────────────────────────
   const { settings, setSettings, currentSegment, upsertSetting } = useAppSettings(companyId);
@@ -171,13 +172,11 @@ function App() {
           const mapped = mapProfile(profile);
           setUser(mapped);
           setIsLoggingIn(false);
-        } else {
-          // If no profile yet (e.g. just signed up), wait for trigger or create basic one
-          console.log('No profile found for user');
         }
       } else {
         setUser(null);
       }
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -391,6 +390,31 @@ function App() {
   const recentServices = useMemo(() =>
     [...services].sort((a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime()).slice(0, 5),
     [services]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full animate-pulse delay-1000"></div>
+        
+        <div className="relative z-10 text-center space-y-8 animate-in fade-in zoom-in duration-500">
+          <div className="bg-white/5 p-6 rounded-[2rem] inline-block border border-white/10 backdrop-blur-3xl relative">
+            <img src="/mcr-logo.png" alt="MCR Logo" className="h-16 w-auto object-contain animate-pulse" />
+            <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-full scale-150 animate-pulse"></div>
+          </div>
+          
+          <div className="space-y-3">
+             <h1 className="text-3xl font-black text-white tracking-widest uppercase italic leading-none">MCR SYSTEM</h1>
+             <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2 animate-pulse">Initializing Platform Authority</p>
+          </div>
+
+          <div className="w-48 h-[2px] bg-white/5 rounded-full mx-auto relative overflow-hidden">
+            <div className="absolute inset-0 bg-emerald-500 shadow-[0_0_10px_#10b981] animate-loading-progress origin-left"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     if (isLoggingIn) {
