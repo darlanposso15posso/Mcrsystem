@@ -14,6 +14,7 @@ import {
     Zap,
     BookOpen,
     Phone,
+    CreditCard,
     X
 } from 'lucide-react';
 import { translations, Language } from '../../translations';
@@ -141,6 +142,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                             >
                                 <Shield size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{t.security}</span>
+                            </button>
+                            <button
+                                onClick={() => handleNavClick('billing')}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'billing' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                            >
+                                <CreditCard size={20} />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Assinatura</span>
                             </button>
                         </>
                     )}

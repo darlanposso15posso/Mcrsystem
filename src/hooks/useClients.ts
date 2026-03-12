@@ -18,6 +18,8 @@ interface UseClientsOptions {
     confirmAction: (msg: string, onConfirm: () => void, onCancel?: () => void) => void;
     userRole?: string;
     companyId: string;  // required — injected into all writes so RLS can validate
+    onLimitReached?: () => void;  // called when client limit is hit
+    maxClients?: number;          // from subscription
 }
 
 async function geocodeAddress(addressStr: string): Promise<{ lat: number; lng: number } | null> {
@@ -47,7 +49,7 @@ function validateClient(client: Partial<Client>, userRole?: string): string | nu
     return null;
 }
 
-export function useClients({ showToast, confirmAction, userRole, companyId }: UseClientsOptions) {
+export function useClients({ showToast, confirmAction, userRole, companyId, onLimitReached, maxClients }: UseClientsOptions) {
     const [clients, setClients] = useState<Client[]>([]);
     const [newClient, setNewClient] = useState(makeEmptyClient(companyId));
     const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -58,6 +60,11 @@ export function useClients({ showToast, confirmAction, userRole, companyId }: Us
 
     const handleCreateClient = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
+        // ── Subscription limit check ──────────────────────────────────────────
+        if (maxClients !== undefined && clients.length >= maxClients) {
+            onLimitReached?.();
+            return;
+        }
         const error = validateClient(newClient, userRole);
         if (error) { showToast(error, 'error'); return; }
         if (!companyId) { showToast('Empresa não identificada. Faça login novamente.', 'error'); return; }

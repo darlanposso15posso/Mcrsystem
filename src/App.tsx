@@ -25,6 +25,8 @@ import CalendarView from './components/calendar/CalendarView';
 import AdminSettings from './components/admin/AdminSettings';
 import AIMaster from './components/ai/AIMaster';
 import { segmentLabels } from './translations/segments';
+import BillingPage from './components/subscription/BillingPage';
+import UpgradeModal from './components/subscription/UpgradeModal';
 
 // Utils
 import { generatePDF } from './utils/pdfGenerator';
@@ -38,6 +40,7 @@ import { useClients } from './hooks/useClients';
 import { useAppSettings } from './hooks/useAppSettings';
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { useLeads } from './hooks/useLeads';
+import { useSubscription } from './hooks/useSubscription';
 import { Recurrence } from './types';
 
 function App() {
@@ -66,6 +69,10 @@ function App() {
   const { settings, setSettings, currentSegment, upsertSetting } = useAppSettings(companyId);
   const s = segmentLabels[currentSegment || 'hood_cleaning'] || segmentLabels['hood_cleaning']; // SAFE FALLBACK
 
+  // ── Subscription (must be before useClients so maxClients is available) ──
+  // clientCount/techCount passed as 0 here; warnings are computed in render from live counts
+  const subscription = useSubscription(companyId || null, 0, 0);
+
   // ── Clients hook ─────────────────────────────────────────────────────────
   const {
     clients, setClients,
@@ -76,7 +83,11 @@ function App() {
     selectedClient, setSelectedClient,
     showClientDetails, setShowClientDetails,
     handleCreateClient, handleUpdateClient, handleDeleteClient,
-  } = useClients({ showToast, confirmAction, userRole: user?.role, companyId });
+  } = useClients({
+    showToast, confirmAction, userRole: user?.role, companyId,
+    maxClients: subscription.maxClients,
+    onLimitReached: () => setUpgradeReason('client_limit'),
+  });
 
   // ── Services ─────────────────────────────────────────────────────────────
   const [services, setServices] = useState<ServiceRecord[]>([]);
@@ -114,7 +125,8 @@ function App() {
 
   // ── Other state ───────────────────────────────────────────────────────────
   const [users, setUsers] = useState<User[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'calendar' | 'services' | 'automation' | 'guide' | 'team' | 'performance' | 'security' | 'admin_settings' | 'leads'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'calendar' | 'services' | 'automation' | 'guide' | 'team' | 'performance' | 'security' | 'admin_settings' | 'leads' | 'billing'>('dashboard');
+  const [upgradeReason, setUpgradeReason] = useState<'client_limit' | 'technician_limit' | 'trial_expired' | 'manual' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -481,6 +493,37 @@ function App() {
 
           <div className="p-4 md:p-8 max-w-7xl mx-auto">
 
+            {/* Trial / Expired Banner */}
+            {user.role === 'admin' && subscription.status === 'trial' && subscription.trialDaysLeft !== null && subscription.trialDaysLeft <= 7 && (
+              <div className="flex items-center gap-3 p-3 mb-4 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-400">
+                <AlertTriangle size={16} className="shrink-0" />
+                <span className="text-xs font-bold flex-1">
+                  {subscription.trialDaysLeft === 0 ? 'Seu trial expira hoje!' : `Trial expira em ${subscription.trialDaysLeft} dia${subscription.trialDaysLeft !== 1 ? 's' : ''}.`}
+                  {' '}Faça upgrade para não perder o acesso.
+                </span>
+                <button
+                  onClick={() => setUpgradeReason('manual')}
+                  className="shrink-0 px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg font-black text-[10px] uppercase tracking-widest"
+                >
+                  Upgrade
+                </button>
+              </div>
+            )}
+            {user.role === 'admin' && (subscription.status === 'expired' || subscription.status === 'canceled') && (
+              <div className="flex items-center gap-3 p-3 mb-4 rounded-xl border bg-red-500/10 border-red-500/20 text-red-400">
+                <AlertTriangle size={16} className="shrink-0" />
+                <span className="text-xs font-bold flex-1">
+                  {subscription.status === 'expired' ? 'Trial expirado.' : 'Assinatura cancelada.'} Escolha um plano para reativar o acesso.
+                </span>
+                <button
+                  onClick={() => setUpgradeReason('trial_expired')}
+                  className="shrink-0 px-3 py-1 bg-red-500 hover:bg-red-400 text-white rounded-lg font-black text-[10px] uppercase tracking-widest"
+                >
+                  Reativar
+                </button>
+              </div>
+            )}
+
             {activeTab === 'dashboard' && (
               <Dashboard
                 user={user}
@@ -590,6 +633,16 @@ function App() {
             {activeTab === 'guide' && user.role === 'admin' && (
               <ConfigGuide />
             )}
+
+            {activeTab === 'billing' && user.role === 'admin' && (
+              <BillingPage
+                subscription={subscription}
+                companyId={companyId}
+                clientCount={clients.length}
+                technicianCount={users.filter(u => u.role === 'technician').length}
+                companyName={settings?.company_name ?? ''}
+              />
+            )}
           </div>
         </main>
 
@@ -649,6 +702,16 @@ function App() {
             <span className="font-bold text-sm tracking-tight">{toast.message}</span>
           </div>
         </div>
+      )}
+
+      {/* Upgrade Modal */}
+      {upgradeReason && (
+        <UpgradeModal
+          reason={upgradeReason}
+          companyId={companyId}
+          currentPlanId={subscription.planId}
+          onClose={() => setUpgradeReason(null)}
+        />
       )}
 
       {/* Confirmation Modal */}

@@ -266,6 +266,79 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                 </div>
             </section>
 
+            {/* PRICING SECTION */}
+            <section className="py-32 bg-[#020617] relative">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-20">
+                        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-500/5 text-emerald-400 font-black text-[10px] mb-8 border border-emerald-500/20 uppercase tracking-[0.2em]">
+                            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Planos e Preços
+                        </div>
+                        <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-6 uppercase">
+                            Simples. <span className="text-emerald-500">Transparente.</span>
+                        </h2>
+                        <p className="text-xl text-slate-400 font-medium max-w-2xl mx-auto">
+                            30 dias grátis sem cartão. Escolha o plano certo quando estiver pronto.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                        {[
+                            { name: 'Starter', price: 12, clients: 15, technicians: 1, color: 'blue', tag: null },
+                            { name: 'Growth',  price: 19, clients: 25, technicians: 2, color: 'emerald', tag: 'Mais Popular' },
+                            { name: 'Pro',     price: 39, clients: 50, technicians: 3, color: 'purple', tag: null },
+                            { name: 'Enterprise', price: 69, clients: 150, technicians: 7, color: 'orange', tag: 'Melhor Valor' },
+                        ].map((plan, i) => {
+                            const borders: Record<string, string> = { blue: 'border-blue-500/30 hover:border-blue-500/60', emerald: 'border-emerald-500/30 hover:border-emerald-500/60', purple: 'border-purple-500/30 hover:border-purple-500/60', orange: 'border-orange-500/30 hover:border-orange-500/60' };
+                            const glows: Record<string, string> = { blue: 'from-blue-500/10', emerald: 'from-emerald-500/10', purple: 'from-purple-500/10', orange: 'from-orange-500/10' };
+                            const tags: Record<string, string> = { blue: 'bg-blue-500', emerald: 'bg-emerald-500', purple: 'bg-purple-500', orange: 'bg-orange-500' };
+                            return (
+                                <div key={i} className={`relative bg-slate-900/60 border-2 rounded-3xl p-7 flex flex-col transition-all duration-300 ${borders[plan.color]} ${plan.name === 'Growth' ? 'scale-[1.03]' : ''} group hover:-translate-y-1`}>
+                                    <div className={`absolute inset-0 bg-gradient-to-b ${glows[plan.color]} to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+                                    {plan.tag && (
+                                        <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-950 ${tags[plan.color]}`}>
+                                            {plan.tag}
+                                        </div>
+                                    )}
+                                    <h3 className="font-black text-white uppercase tracking-widest text-sm mb-4 relative">{plan.name}</h3>
+                                    <div className="mb-6 relative">
+                                        <span className="text-5xl font-black text-white">${plan.price}</span>
+                                        <span className="text-slate-500 text-sm font-bold">/mês</span>
+                                    </div>
+                                    <ul className="space-y-3 mb-8 flex-1 relative">
+                                        {[
+                                            `${plan.clients} clientes ativos`,
+                                            `${plan.technicians} técnico${plan.technicians > 1 ? 's' : ''}`,
+                                            'Emissão de relatórios',
+                                            'Conformidade NFPA 96',
+                                        ].map((f, j) => (
+                                            <li key={j} className="flex items-center gap-2 text-slate-300 text-sm">
+                                                <CheckCircle2 size={14} className="text-emerald-500 shrink-0" /> {f}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <button onClick={onStartTrial} className={`relative w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 text-white bg-${plan.color}-600 hover:bg-${plan.color}-500`}>
+                                        Começar Grátis
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Trial callout */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 p-6 bg-emerald-500/5 rounded-3xl border border-emerald-500/10 max-w-2xl mx-auto text-center sm:text-left">
+                        <div className="text-4xl">🎉</div>
+                        <div>
+                            <p className="font-black text-white text-lg">Comece com 30 dias grátis</p>
+                            <p className="text-slate-400 text-sm">20 clientes + 2 técnicos + todos os recursos. Sem cartão de crédito.</p>
+                        </div>
+                        <button onClick={onStartTrial} className="shrink-0 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95">
+                            Criar Conta
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             {/* CALL TO ACTION */}
             <section className="relative py-40 overflow-hidden text-center">
                 <div className="absolute inset-0 bg-emerald-500/5 -z-10 bg-[radial-gradient(circle_at_center,_transparent_0%,_#020617_70%)]"></div>
@@ -291,7 +364,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                             </div>
                         </button>
                     </div>
-                    <p className="mt-8 text-slate-600 font-bold uppercase text-[10px] tracking-widest">Setup instantâneo • Sem cartão • 15 dias grátis</p>
+                    <p className="mt-8 text-slate-600 font-bold uppercase text-[10px] tracking-widest">Setup instantâneo • Sem cartão • 30 dias grátis</p>
                 </div>
             </section>
 
