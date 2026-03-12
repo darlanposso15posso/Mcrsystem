@@ -969,6 +969,66 @@ async function startServer() {
     }
   });
 
+  // ─── LLM Router endpoints ─────────────────────────────────────────────────
+  // Importação dinâmica para evitar erros de inicialização se as chaves não
+  // estiverem configuradas ainda.
+
+  // POST /api/ai/chat  → envia uma conversa e retorna a resposta do LLM
+  app.post("/api/ai/chat", authenticate, async (req: any, res) => {
+    try {
+      const { route } = await import('./server/llm/router.ts');
+      const { messages, taskType, maxTokens, temperature, forceProvider } = req.body;
+
+      if (!Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ error: "Campo 'messages' é obrigatório e deve ser um array" });
+      }
+
+      const response = await route({ messages, taskType, maxTokens, temperature, forceProvider });
+      res.json(response);
+    } catch (err: any) {
+      console.error('[/api/ai/chat]', err);
+      res.status(500).json({ error: err?.message ?? 'Erro interno no LLM router' });
+    }
+  });
+
+  // GET /api/ai/status → status de uso dos providers (Claude, Gemini, Ollama)
+  app.get("/api/ai/status", authenticate, async (_req, res) => {
+    try {
+      const { getProvidersStatus } = await import('./server/llm/router.ts');
+      const status = await getProvidersStatus();
+      res.json(status);
+    } catch (err: any) {
+      console.error('[/api/ai/status]', err);
+      res.status(500).json({ error: err?.message ?? 'Erro ao obter status dos providers' });
+    }
+  });
+
+  // GET /api/ai/usage  → histórico de consumo por provider/modelo/dia
+  app.get("/api/ai/usage", authenticate, async (req: any, res) => {
+    try {
+      const { getUsageHistory, getProviderStats } = await import('./server/llm/usage-tracker.ts');
+      const days = parseInt(req.query.days as string ?? '7', 10);
+      res.json({
+        history: getUsageHistory(days),
+        stats:   getProviderStats(),
+      });
+    } catch (err: any) {
+      console.error('[/api/ai/usage]', err);
+      res.status(500).json({ error: err?.message ?? 'Erro ao obter histórico de uso' });
+    }
+  });
+
+  // POST /api/ai/classify → detecta o tipo de tarefa sem chamar nenhum LLM
+  app.post("/api/ai/classify", authenticate, (req: any, res) => {
+    import('./server/llm/router.ts').then(({ classifyTask }) => {
+      const { messages } = req.body;
+      if (!Array.isArray(messages)) {
+        return res.status(400).json({ error: "Campo 'messages' é obrigatório" });
+      }
+      res.json({ taskType: classifyTask(messages) });
+    }).catch((err: any) => res.status(500).json({ error: err?.message }));
+  });
+
   // Endpoint to download database backup
   app.get("/api/admin/backup", authenticate, (req: any, res) => {
     if (req.user.role !== 'admin') {

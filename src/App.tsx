@@ -23,6 +23,7 @@ import ConfigGuide from './components/guide/ConfigGuide';
 import Modals from './components/common/Modals';
 import CalendarView from './components/calendar/CalendarView';
 import AdminSettings from './components/admin/AdminSettings';
+import AIMaster from './components/ai/AIMaster';
 import { segmentLabels } from './translations/segments';
 
 // Utils
@@ -628,6 +629,14 @@ function App() {
           user={user}
         />
       </div>
+
+      {/* AI Master — assistente flutuante disponível em todas as telas */}
+      {user && (
+        <AIMaster
+          activeTab={activeTab}
+          user={user}
+        />
+      )}
 
       {/* Toast */}
       {toast && (
