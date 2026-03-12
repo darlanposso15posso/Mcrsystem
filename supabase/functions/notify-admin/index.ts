@@ -24,7 +24,7 @@ serve(async (req) => {
                 Authorization: `Bearer ${RESEND_API_KEY}`,
             },
             body: JSON.stringify({
-                from: "D&E Notifications <onboarding@resend.dev>",
+                from: "MCR Notifications <onboarding@resend.dev>",
                 to: ["dehoodcleaning@gmail.com"],
                 subject: `Novo técnico solicitou acesso: ${technicianName}`,
                 html: `
