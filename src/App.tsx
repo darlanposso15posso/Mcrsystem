@@ -3,7 +3,11 @@ import {
   X,
   AlertTriangle,
   Menu,
-  CheckCircle2
+  CheckCircle2,
+  LayoutDashboard,
+  CalendarDays,
+  Users,
+  ClipboardList
 } from 'lucide-react';
 import { ServiceRecord, User, Client } from './types';
 
@@ -27,14 +31,16 @@ import AIMaster from './components/ai/AIMaster';
 import { segmentLabels } from './translations/segments';
 import BillingPage from './components/subscription/BillingPage';
 import UpgradeModal from './components/subscription/UpgradeModal';
+import SessionTimeoutModal from './components/auth/SessionTimeoutModal';
 
 // Utils
 import { generatePDF } from './utils/pdfGenerator';
-import { supabase } from './lib/supabase';
+import { supabase, isOAuthCallback } from './lib/supabase';
 import { mapService, unmapService, mapProfile, mapNotification } from './lib/supabaseUtils';
 import LoginForm from './components/auth/LoginForm';
 
 // Hooks
+import { useSessionTimeout } from './hooks/useSessionTimeout';
 import { useActiveService } from './hooks/useActiveService';
 import { useClients } from './hooks/useClients';
 import { useAppSettings } from './hooks/useAppSettings';
@@ -61,6 +67,7 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const companyId = user?.companyId ?? '';
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -171,48 +178,89 @@ function App() {
   });
 
   useEffect(() => {
-    const initAuth = async () => {
+    // isOAuthCallback: hash captured before createClient cleared it (supabase.ts module-level)
+    // sessionStorage flag: set in handleGoogleLogin before the redirect
+    const isOAuthRedirect = isOAuthCallback || sessionStorage.getItem('oauth_pending') === '1';
+    sessionStorage.removeItem('oauth_pending');
+
+    const applySession = async (session: any) => {
+      if (!session?.user) { setUser(null); setIsInitializing(false); return; }
+
+      // Set minimal user immediately so the app opens right away
+      const meta = session.user.user_metadata;
+      const minimalUser: User = {
+        id: session.user.id,
+        email: session.user.email ?? '',
+        name: meta?.full_name || meta?.name || session.user.email?.split('@')[0] || 'User',
+        role: 'admin',
+        status: 'active',
+        companyId: '',
+        phone: '',
+        knowledgeLevel: '',
+        address: '',
+        joinDate: session.user.created_at,
+      };
+      setUser(minimalUser);
+      setIsLoggingIn(false);
+      setIsInitializing(false);
+
+      // Load full profile in background
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-          
-          if (profile) {
-            setUser(mapProfile(profile));
-            setIsLoggingIn(false);
-          }
-        }
-      } catch (err) {
-        console.error("Auth init error:", err);
-      } finally {
-        // isLoading removed
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
+        let { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .maybeSingle();
-        
-        if (profile) {
-          setUser(mapProfile(profile));
-          setIsLoggingIn(false);
+
+        if (!profile) {
+          const { data: created } = await supabase
+            .from('profiles')
+            .upsert({
+              id: session.user.id,
+              email: session.user.email,
+              name: minimalUser.name,
+              role: 'admin',
+              status: 'active',
+            }, { onConflict: 'id' })
+            .select()
+            .single();
+          profile = created;
         }
-      } else {
+
+        if (profile) setUser(mapProfile(profile));
+      } catch (err) {
+        console.error('Profile load error:', err);
+      }
+    };
+
+    // Safety: if SIGNED_IN never fires (e.g. OAuth error), release spinner after 5s
+    let oauthTimeout: ReturnType<typeof setTimeout> | null = null;
+    if (isOAuthRedirect) {
+      oauthTimeout = setTimeout(() => setIsInitializing(false), 5000);
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (oauthTimeout) { clearTimeout(oauthTimeout); oauthTimeout = null; }
+      if (session?.user) {
+        await applySession(session);
+        return;
+      }
+      if (event === 'SIGNED_OUT') {
         setUser(null);
+        setIsInitializing(false);
+      } else if (event === 'INITIAL_SESSION') {
+        // For OAuth redirects, new users have no stored session yet — SIGNED_IN
+        // will fire next with the actual session. Keep spinner until then.
+        if (!isOAuthRedirect) {
+          setIsInitializing(false);
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (oauthTimeout) clearTimeout(oauthTimeout);
+    };
   }, []);
 
   useEffect(() => {
@@ -226,6 +274,15 @@ function App() {
     setUser(null);
     setIsLoggingIn(false);
   };
+
+  // ── Session timeout (1h inactivity) ──────────────────────────────────────
+  const [showSessionWarning, setShowSessionWarning] = useState(false);
+  useSessionTimeout(
+    !!user,
+    () => { handleLogout(); setShowSessionWarning(false); },
+    () => setShowSessionWarning(true),
+    () => setShowSessionWarning(false),
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -424,6 +481,14 @@ function App() {
     [...services].sort((a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime()).slice(0, 5),
     [services]);
 
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!user) {
     if (isLoggingIn) {
       return (
@@ -462,7 +527,7 @@ function App() {
 
         <main className="flex-1 overflow-y-auto hud-grid hud-scanline">
           {/* Mobile Header */}
-          <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 shadow-sm">
+          <div className="md:hidden flex items-center justify-between p-4 bg-[var(--sidebar-bg)] border-b border-[var(--border-muted)] shadow-sm">
             <div className="flex items-center gap-2">
               <img
                 src={settings?.logo_image || 'https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl'}
@@ -471,12 +536,12 @@ function App() {
                 referrerPolicy="no-referrer"
                 onError={e => (e.currentTarget.style.display = 'none')}
               />
-              <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
-              <img src="/mcr-logo.png" alt="MCR Logo" className="h-6 w-auto" />
+              <div className="h-6 w-[1px] bg-white/10 mx-1"></div>
+              <img src="/mcr-logo.png" alt="MCR Logo" className="h-6 w-auto opacity-60" />
             </div>
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 bg-slate-900/5 hover:bg-slate-900/10 text-slate-900 rounded-lg transition-all"
+              className="p-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
             >
               <Menu size={24} />
             </button>
@@ -491,7 +556,7 @@ function App() {
             segmentLabels={s}
           />
 
-          <div className="p-4 md:p-8 max-w-7xl mx-auto">
+          <div className="p-4 md:p-8 max-w-7xl mx-auto pb-24 md:pb-8">
 
             {/* Trial / Expired Banner */}
             {user.role === 'admin' && subscription.status === 'trial' && subscription.trialDaysLeft !== null && subscription.trialDaysLeft <= 7 && (
@@ -606,6 +671,7 @@ function App() {
             {activeTab === 'team' && user.role === 'admin' && (
               <TeamManagement
                 users={users}
+                companyId={companyId}
                 setShowUserModal={setShowUserModal}
                 setEditingUser={setEditingUser}
                 setShowEditUserModal={setShowEditUserModal}
@@ -693,7 +759,7 @@ function App() {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-5 right-5 z-[100] p-4 rounded-none border border-white/10 shadow-2xl blue-glow ${toast.type === 'error' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 md:top-auto md:bottom-5 md:left-auto md:right-5 md:translate-x-0 w-[90vw] md:w-auto z-[100] p-4 rounded-xl border border-white/10 shadow-2xl blue-glow ${toast.type === 'error' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
           toast.type === 'info' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
             'bg-[var(--card-color)] text-blue-600'
           }`}>
@@ -702,6 +768,14 @@ function App() {
             <span className="font-bold text-sm tracking-tight">{toast.message}</span>
           </div>
         </div>
+      )}
+
+      {/* Session Timeout Warning */}
+      {showSessionWarning && (
+        <SessionTimeoutModal
+          onStay={() => setShowSessionWarning(false)}
+          onLogout={handleLogout}
+        />
       )}
 
       {/* Upgrade Modal */}
@@ -713,6 +787,32 @@ function App() {
           onClose={() => setUpgradeReason(null)}
         />
       )}
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--sidebar-bg)] border-t border-[var(--border-muted)] flex items-center justify-around px-2 py-2 shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
+        {[
+          { id: 'dashboard' as const, icon: <LayoutDashboard size={22} />, label: 'Home' },
+          { id: 'calendar' as const, icon: <CalendarDays size={22} />, label: 'Agenda' },
+          { id: 'clients' as const, icon: <Users size={22} />, label: s?.clients || 'Clientes' },
+          { id: 'services' as const, icon: <ClipboardList size={22} />, label: s?.services || 'Serviços' },
+        ].map(item => (
+          <button
+            key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all min-w-0 flex-1 ${activeTab === item.id ? 'text-[#FACC15]' : 'text-slate-500 hover:text-slate-300'}`}
+          >
+            {item.icon}
+            <span className="text-[9px] font-black uppercase tracking-wider truncate">{item.label}</span>
+          </button>
+        ))}
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all min-w-0 flex-1 ${['leads','team','performance','automation','guide','security','billing','admin_settings'].includes(activeTab) ? 'text-[#FACC15]' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <Menu size={22} />
+          <span className="text-[9px] font-black uppercase tracking-wider">Menu</span>
+        </button>
+      </nav>
 
       {/* Confirmation Modal */}
       {confirmation && (

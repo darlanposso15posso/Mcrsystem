@@ -38,8 +38,12 @@ CREATE TABLE IF NOT EXISTS companies (
 
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
 
+-- Drop policies if they already exist, then recreate
+DROP POLICY IF EXISTS "companies_select_own"    ON companies;
+DROP POLICY IF EXISTS "companies_service_role_all" ON companies;
+
 -- Admins can read their own company
-CREATE POLICY IF NOT EXISTS "companies_select_own"
+CREATE POLICY "companies_select_own"
   ON companies FOR SELECT
   USING (
     id = (
@@ -48,7 +52,7 @@ CREATE POLICY IF NOT EXISTS "companies_select_own"
   );
 
 -- Service role (Edge Functions) can do anything
-CREATE POLICY IF NOT EXISTS "companies_service_role_all"
+CREATE POLICY "companies_service_role_all"
   ON companies FOR ALL
   USING (auth.role() = 'service_role');
 
