@@ -12,9 +12,11 @@ const getBase64ImageFromUrl = async (imageUrl: string): Promise<string | null> =
   }
 
   try {
-    const response = await fetch(imageUrl, { mode: 'no-cors' }); // Attempt no-cors if simple fetch fails, though it won't allow reading content
-    // However, jspdf needs the content, so no-cors might not help here.
-    // Better to use a proxy or just handle the failure gracefully with a fallback.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(imageUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!response.ok) return null;
     const blob = await response.blob();
     return new Promise((resolve) => {
       const reader = new FileReader();
