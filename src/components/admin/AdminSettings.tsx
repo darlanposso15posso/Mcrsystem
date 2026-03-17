@@ -76,9 +76,67 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, fetchData
                 bg_color: '#083344',
                 card_color: '#155e75',
                 sidebar_bg: '#083344',
+                sidebar_text: '#ecfeff',
                 header_bg: 'rgba(8, 51, 68, 0.8)',
                 text_primary: '#ecfeff',
+                text_muted: '#a5f3fc',
+                border_color: 'rgba(255,255,255,0.08)',
+                border_muted: 'rgba(255,255,255,0.05)',
                 font_family: '"Roboto", sans-serif'
+            }
+        },
+        {
+            id: 'white_clean',
+            label: '☀️ Branco Limpo',
+            colors: {
+                primary_color: '#10b981',
+                bg_color: '#f8fafc',
+                card_color: '#ffffff',
+                card_alt_color: '#f1f5f9',
+                sidebar_bg: '#0f172a',
+                sidebar_text: '#f8fafc',
+                header_bg: 'rgba(248,250,252,0.95)',
+                text_primary: '#0f172a',
+                text_muted: '#475569',
+                border_color: 'rgba(0,0,0,0.08)',
+                border_muted: 'rgba(0,0,0,0.05)',
+                font_family: '"Inter", sans-serif'
+            }
+        },
+        {
+            id: 'white_blue',
+            label: '☀️ Branco Azul',
+            colors: {
+                primary_color: '#3b82f6',
+                bg_color: '#f0f9ff',
+                card_color: '#ffffff',
+                card_alt_color: '#dbeafe',
+                sidebar_bg: '#1e3a8a',
+                sidebar_text: '#e0f2fe',
+                header_bg: 'rgba(240,249,255,0.95)',
+                text_primary: '#0f172a',
+                text_muted: '#475569',
+                border_color: 'rgba(0,0,0,0.08)',
+                border_muted: 'rgba(0,0,0,0.05)',
+                font_family: '"Inter", sans-serif'
+            }
+        },
+        {
+            id: 'white_orange',
+            label: '☀️ Branco Laranja',
+            colors: {
+                primary_color: '#f97316',
+                bg_color: '#fffbf5',
+                card_color: '#ffffff',
+                card_alt_color: '#fef3c7',
+                sidebar_bg: '#1c1917',
+                sidebar_text: '#fef9f0',
+                header_bg: 'rgba(255,251,245,0.95)',
+                text_primary: '#1c1917',
+                text_muted: '#78716c',
+                border_color: 'rgba(0,0,0,0.08)',
+                border_muted: 'rgba(0,0,0,0.05)',
+                font_family: '"Inter", sans-serif'
             }
         }
     ];
@@ -352,14 +410,15 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, fetchData
                                         <button
                                             key={theme.id}
                                             onClick={() => applyTheme(theme.colors)}
-                                            className="group relative flex flex-col items-center justify-center p-6 bg-black/40 border border-[var(--border-muted)] hover:border-blue-600 transition-all rounded-none"
+                                            className="group relative flex flex-col items-center justify-center p-4 border border-[var(--border-muted)] hover:border-blue-500 transition-all rounded-xl overflow-hidden"
+                                            style={{ background: theme.colors.bg_color }}
                                         >
-                                            <div className="flex gap-1 mb-3">
-                                                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.colors.primary_color }}></div>
-                                                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.colors.bg_color }}></div>
-                                                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.colors.sidebar_bg }}></div>
+                                            <div className="flex gap-1 mb-2">
+                                                <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.primary_color }}></div>
+                                                <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.card_color }}></div>
+                                                <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.sidebar_bg }}></div>
                                             </div>
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-white group-hover:text-blue-500">{theme.label}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.colors.text_primary }}>{theme.label}</span>
                                         </button>
                                     ))}
                                 </div>

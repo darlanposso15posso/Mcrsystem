@@ -34,10 +34,14 @@ export function useAppSettings(companyId?: string) {
         }
         if (settings['bg_color']) root.style.setProperty('--bg-color', settings['bg_color']);
         if (settings['card_color']) root.style.setProperty('--card-color', settings['card_color']);
+        if (settings['card_alt_color']) root.style.setProperty('--card-alt-color', settings['card_alt_color']);
         if (settings['sidebar_bg']) root.style.setProperty('--sidebar-bg', settings['sidebar_bg']);
+        if (settings['sidebar_text']) root.style.setProperty('--sidebar-text', settings['sidebar_text']);
         if (settings['header_bg']) root.style.setProperty('--header-bg', settings['header_bg']);
         if (settings['text_primary']) root.style.setProperty('--text-primary', settings['text_primary']);
         if (settings['text_muted']) root.style.setProperty('--text-muted', settings['text_muted']);
+        if (settings['border_color']) root.style.setProperty('--border-color', settings['border_color']);
+        if (settings['border_muted']) root.style.setProperty('--border-muted', settings['border_muted']);
         if (settings['font_family']) root.style.setProperty('--font-family', settings['font_family']);
         if (settings['glow_intensity']) root.style.setProperty('--glow-intensity', settings['glow_intensity']);
     }, [settings]);

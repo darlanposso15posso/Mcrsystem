@@ -50,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                 />
             )}
 
-            <aside className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[var(--sidebar-bg)] text-[var(--text-primary)] flex flex-col border-r border-[var(--border-muted)] z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} shadow-[4px_0_24px_rgba(0,0,0,0.2)]`}>
+            <aside className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[var(--sidebar-bg)] text-[var(--sidebar-text)] flex flex-col border-r border-white/5 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} shadow-[4px_0_24px_rgba(0,0,0,0.2)]`}>
                 <div className="p-6 border-b border-[var(--border-muted)] flex flex-col items-center justify-center relative">
                     {/* Mobile Close Button */}
                     <button 
