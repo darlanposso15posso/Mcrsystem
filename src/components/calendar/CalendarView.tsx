@@ -261,7 +261,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ clients, services, settings
                                             <div className="font-black text-lg text-emerald-500 leading-tight mb-1 uppercase italic">{marker.clientName}</div>
                                             <div className="text-[10px] font-bold text-gray-400 mb-3 uppercase tracking-widest">{marker.address}</div>
 
-                                            <button className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-[var(--bg-color)] py-2 px-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20">
+                                            <button
+                                                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${marker.lat},${marker.lng}`, '_blank')}
+                                                className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-[var(--bg-color)] py-2 px-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+                                            >
                                                 <Navigation size={14} /> Traçar Rota
                                             </button>
                                         </div>

@@ -105,7 +105,11 @@ const Automation: React.FC<AutomationProps> = ({ user, settings, fetchData, show
                                     <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Disparos automáticos de lembrete</p>
                                 </div>
                             </div>
-                            <button className="p-2 hover:bg-[var(--card-alt-color)]/80 rounded-none transition-colors border border-[var(--border-muted)]">
+                            <button
+                                onClick={() => showToast('Configure o SMTP em Configurações > Automação.', 'info')}
+                                className="p-2 hover:bg-[var(--card-alt-color)]/80 rounded-none transition-colors border border-[var(--border-muted)]"
+                                title="Configurações de E-mail"
+                            >
                                 <Settings size={20} className="text-[var(--text-muted)]" />
                             </button>
                         </div>
@@ -292,14 +296,34 @@ const Automation: React.FC<AutomationProps> = ({ user, settings, fetchData, show
                     <div className="bg-[var(--bg-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl blue-glow">
                         <h3 className="font-black text-white uppercase italic tracking-tight mb-6 text-sm">Operações de Manutenção</h3>
                         <div className="space-y-4">
-                            <button className="w-full h-14 flex items-center justify-between px-6 bg-[var(--card-alt-color)] hover:bg-blue-600 hover:text-[var(--bg-color)] border border-[var(--border-muted)] transition-all group rounded-none">
+                            <button
+                                onClick={async () => {
+                                    showToast('Testando conexão SMTP...', 'info');
+                                    try {
+                                        const { supabase: sb } = await import('../../lib/supabase');
+                                        const { error } = await sb.functions.invoke('notify-admin', { body: { test: true } });
+                                        if (error) throw error;
+                                        showToast('SMTP testado com sucesso!', 'success');
+                                    } catch {
+                                        showToast('Falha no teste SMTP. Verifique as configurações.', 'error');
+                                    }
+                                }}
+                                className="w-full h-14 flex items-center justify-between px-6 bg-[var(--card-alt-color)] hover:bg-blue-600 hover:text-[var(--bg-color)] border border-[var(--border-muted)] transition-all group rounded-none"
+                            >
                                 <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest">
                                     <Send size={18} className="text-blue-600 group-hover:text-[var(--bg-color)]" />
                                     <span>Testar SMTP</span>
                                 </div>
                                 <Zap size={14} className="text-white/10 group-hover:text-[var(--bg-color)]" />
                             </button>
-                            <button className="w-full h-14 flex items-center justify-between px-6 bg-[var(--card-alt-color)] hover:bg-blue-500 hover:text-[var(--bg-color)] border border-[var(--border-muted)] transition-all group rounded-none">
+                            <button
+                                onClick={async () => {
+                                    showToast('Sincronizando dados...', 'info');
+                                    await fetchData();
+                                    showToast('Dados sincronizados com sucesso!', 'success');
+                                }}
+                                className="w-full h-14 flex items-center justify-between px-6 bg-[var(--card-alt-color)] hover:bg-blue-500 hover:text-[var(--bg-color)] border border-[var(--border-muted)] transition-all group rounded-none"
+                            >
                                 <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest">
                                     <Settings size={18} className="text-blue-500 group-hover:text-[var(--bg-color)]" />
                                     <span>Sync DB Schema</span>

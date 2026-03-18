@@ -22,6 +22,7 @@ const ServiceHistory: React.FC<ServiceHistoryProps> = ({ user, clients, filtered
     const currentLang = (settings['language'] as Language) || 'pt';
     const t = translations[currentLang];
     const [generatingId, setGeneratingId] = useState<string | number | null>(null);
+    const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
     const handleGeneratePDF = async (service: ServiceRecord) => {
         setGeneratingId(service.id);
@@ -73,8 +74,10 @@ const ServiceHistory: React.FC<ServiceHistoryProps> = ({ user, clients, filtered
                             .map((service) => {
                                 const duration = calculateDuration(service.inspectionStartTime, service.completionTime);
 
+                                const isExpanded = expandedId === service.id;
                                 return (
-                                    <tr key={service.id} className="hover:bg-white/[0.03] transition-colors group">
+                                    <React.Fragment key={service.id}>
+                                    <tr className="hover:bg-white/[0.03] transition-colors group">
                                         <td className="px-6 py-6 font-black">
                                             <div className="text-white uppercase italic tracking-tight">{service.restaurantName}</div>
                                             <div className="text-[10px] text-[var(--text-faint)] font-bold uppercase tracking-widest mt-1">Ref: {service.reportNumber || 'N/A'}</div>
@@ -112,12 +115,30 @@ const ServiceHistory: React.FC<ServiceHistoryProps> = ({ user, clients, filtered
                                                 >
                                                     {generatingId === service.id ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                                                 </button>
-                                                <button className="p-2 hover:bg-[var(--card-alt-color)]/80 rounded-none text-[var(--text-faint)] hover:text-white border border-[var(--border-muted)]" title="Ver Detalhes">
-                                                    <ChevronRight size={18} />
+                                                <button
+                                                    onClick={() => setExpandedId(isExpanded ? null : service.id)}
+                                                    className={`p-2 rounded-none transition-all border border-[var(--border-muted)] ${isExpanded ? 'bg-[var(--card-alt-color)] text-white' : 'text-[var(--text-faint)] hover:bg-[var(--card-alt-color)]/80 hover:text-white'}`}
+                                                    title="Ver Detalhes"
+                                                >
+                                                    <ChevronRight size={18} className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
+                                    {isExpanded && (
+                                        <tr className="bg-[var(--card-alt-color)]/40">
+                                            <td colSpan={user.role === 'admin' ? 6 : 5} className="px-6 py-4">
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px]">
+                                                    <div><span className="text-[var(--text-faint)] font-black uppercase tracking-widest block">Sistema</span><span className="text-white font-bold">{service.systemType || 'N/A'}</span></div>
+                                                    <div><span className="text-[var(--text-faint)] font-black uppercase tracking-widest block">Volume Graxa</span><span className="text-white font-bold">{service.volume || 'N/A'}</span></div>
+                                                    <div><span className="text-[var(--text-faint)] font-black uppercase tracking-widest block">Condição Inicial</span><span className="text-white font-bold">{service.conditionBefore || 'N/A'}</span></div>
+                                                    <div><span className="text-[var(--text-faint)] font-black uppercase tracking-widest block">Próx. Serviço</span><span className="text-white font-bold">{service.nextServiceDate ? formatDate(service.nextServiceDate) : 'N/A'}</span></div>
+                                                    {service.notes && <div className="col-span-2 md:col-span-4"><span className="text-[var(--text-faint)] font-black uppercase tracking-widest block">Notas</span><span className="text-white font-bold">{service.notes}</span></div>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                    </React.Fragment>
                                 );
                             })}
                     </tbody>
