@@ -61,7 +61,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                             <button onClick={onStartTrial} className="relative group">
                                 <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full blur opacity-40 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                                 <div className="relative bg-slate-950 hover:bg-slate-900 text-white font-black px-6 py-2.5 rounded-full shadow-lg transition-all active:scale-95 uppercase tracking-widest text-xs border border-white/10">
-                                    Trial Grátis
+                                    Free Trial
                                 </div>
                             </button>
                         </div>
@@ -78,26 +78,26 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                     </div>
                     
                     <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter mb-8 leading-[0.9] animate-slide-up">
-                        A Nova Era do <br />
+                        The New Era of <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500 drop-shadow-sm">
                             Hood Cleaning.
                         </span>
                     </h1>
-                    
+
                     <p className="mt-8 text-xl md:text-2xl text-slate-400 max-w-4xl mx-auto mb-12 leading-relaxed font-medium animate-slide-up" style={{ animationDelay: '100ms' }}>
-                        Transforme sua operação com tecnologia de conformidade **NFPA**. 
-                        Relatórios inteligentes, gestão de técnicos e automação de campo em uma única plataforma premium.
+                        Transform your operation with NFPA compliance technology.
+                        Smart reports, technician management and field automation — all in one premium platform.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
                         <button onClick={onStartTrial} className="group relative w-full sm:w-auto overflow-hidden rounded-2xl">
                             <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-cyan-600 group-hover:scale-110 transition-transform duration-500"></div>
                             <div className="relative flex items-center justify-center gap-3 text-white font-black text-lg px-10 py-5 rounded-2xl shadow-2xl transition-all active:scale-95 uppercase tracking-widest">
-                                Iniciar Jornada <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                                Start Now <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
                             </div>
                         </button>
                         <button className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 text-white font-black text-lg px-10 py-5 rounded-2xl border border-white/10 transition-all active:scale-95 uppercase tracking-widest backdrop-blur-sm">
-                            Tour do Sistema <Activity size={22} />
+                            Platform Tour <Activity size={22} />
                         </button>
                     </div>
 
@@ -162,10 +162,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                     <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-24">
                         <div className="max-w-2xl">
                             <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-6 uppercase italic">
-                                Os Pilares da <br />
-                                <span className="text-emerald-500 uppercase not-italic">Autoridade.</span>
+                                The Pillars of <br />
+                                <span className="text-emerald-500 uppercase not-italic">Authority.</span>
                             </h2>
-                            <p className="text-xl text-slate-400 font-medium">MCR não é apenas um software, é o seu novo padrão de excelência em conformidade e relatórios.</p>
+                            <p className="text-xl text-slate-400 font-medium">MCR is not just software — it's your new standard of excellence in compliance and reporting.</p>
                         </div>
                         <div className="flex gap-4 p-2 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
                             <button onClick={() => setActiveTab('management')} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'management' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>Management</button>
@@ -181,12 +181,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                                     <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 mb-8 border border-emerald-500/20">
                                         <Cpu size={32} />
                                     </div>
-                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Gestão Inteligente</h3>
+                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Smart Management</h3>
                                     <p className="text-lg text-slate-400 leading-relaxed mb-8">
-                                        Controle total sobre clientes, técnicos e agendamentos. Nosso motor de IA prevê datas de serviço e automatiza o fluxo de trabalho para que você foque no crescimento.
+                                        Full control over clients, technicians and scheduling. Our AI engine predicts service dates and automates your workflow so you can focus on growth.
                                     </p>
                                     <ul className="space-y-4">
-                                        {['Automação de Recorrência', 'Controle de Equipes em Campo', 'CRM Especializado'].map((item, i) => (
+                                        {['Recurrence Automation', 'Field Team Control', 'Specialized CRM'].map((item, i) => (
                                             <li key={i} className="flex items-center gap-3 text-white font-bold text-sm">
                                                 <CheckCircle2 size={18} className="text-emerald-500" /> {item}
                                             </li>
@@ -200,12 +200,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                                     <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-500 mb-8 border border-cyan-500/20">
                                         <Shield size={32} />
                                     </div>
-                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Rigor na Conformidade</h3>
+                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Compliance Rigor</h3>
                                     <p className="text-lg text-slate-400 leading-relaxed mb-8">
-                                        Checklists digitais baseados nos padrões NFPA 96. Garanta que cada centímetro limpo esteja documentado e dentro das normas de segurança internacionais.
+                                        Digital checklists built on NFPA 96 standards. Ensure every cleaned inch is documented and within international fire safety regulations.
                                     </p>
                                     <ul className="space-y-4">
-                                        {['Padrão NFPA 96 Integrado', 'Garantia de Segurança contra Incêndio', 'Certificações Digitais'].map((item, i) => (
+                                        {['Built-in NFPA 96 Standard', 'Fire Safety Assurance', 'Digital Certifications'].map((item, i) => (
                                             <li key={i} className="flex items-center gap-3 text-white font-bold text-sm">
                                                 <CheckCircle2 size={18} className="text-cyan-500" /> {item}
                                             </li>
@@ -219,12 +219,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                                     <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 mb-8 border border-blue-500/20">
                                         <FileSearch size={32} />
                                     </div>
-                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Relatórios de Elite</h3>
+                                    <h3 className="text-3xl font-black text-white mb-6 uppercase tracking-tight">Elite Reports</h3>
                                     <p className="text-lg text-slate-400 leading-relaxed mb-8">
-                                        Gere relatórios fotográficos de "Antes e Depois" em segundos. Documentação visual inegável que fecha contratos e mantém a confiança dos seus clientes.
+                                        Generate Before & After photo reports in seconds. Undeniable visual documentation that closes contracts and builds client trust.
                                     </p>
                                     <ul className="space-y-4">
-                                        {['Geração de PDF Automática', 'Histórico Fotográfico em Nuvem', 'Personalização com sua Marca'].map((item, i) => (
+                                        {['Automatic PDF Generation', 'Cloud Photo History', 'White-Label Branding'].map((item, i) => (
                                             <li key={i} className="flex items-center gap-3 text-white font-bold text-sm">
                                                 <CheckCircle2 size={18} className="text-blue-500" /> {item}
                                             </li>
@@ -272,22 +272,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                     <div className="text-center mb-20">
                         <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-500/5 text-emerald-400 font-black text-[10px] mb-8 border border-emerald-500/20 uppercase tracking-[0.2em]">
                             <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Planos e Preços
+                            Plans & Pricing
                         </div>
                         <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-6 uppercase">
-                            Simples. <span className="text-emerald-500">Transparente.</span>
+                            Simple. <span className="text-emerald-500">Transparent.</span>
                         </h2>
                         <p className="text-xl text-slate-400 font-medium max-w-2xl mx-auto">
-                            30 dias grátis sem cartão. Escolha o plano certo quando estiver pronto.
+                            30 days free, no credit card required. Choose your plan when you're ready.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                         {[
                             { name: 'Starter', price: 12, clients: 15, technicians: 1, color: 'blue', tag: null },
-                            { name: 'Growth',  price: 19, clients: 25, technicians: 2, color: 'emerald', tag: 'Mais Popular' },
+                            { name: 'Growth',  price: 19, clients: 25, technicians: 2, color: 'emerald', tag: 'Most Popular' },
                             { name: 'Pro',     price: 39, clients: 50, technicians: 3, color: 'purple', tag: null },
-                            { name: 'Enterprise', price: 69, clients: 150, technicians: 7, color: 'orange', tag: 'Melhor Valor' },
+                            { name: 'Enterprise', price: 69, clients: 150, technicians: 7, color: 'orange', tag: 'Best Value' },
                         ].map((plan, i) => {
                             const borders: Record<string, string> = { blue: 'border-blue-500/30 hover:border-blue-500/60', emerald: 'border-emerald-500/30 hover:border-emerald-500/60', purple: 'border-purple-500/30 hover:border-purple-500/60', orange: 'border-orange-500/30 hover:border-orange-500/60' };
                             const glows: Record<string, string> = { blue: 'from-blue-500/10', emerald: 'from-emerald-500/10', purple: 'from-purple-500/10', orange: 'from-orange-500/10' };
@@ -303,14 +303,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                                     <h3 className="font-black text-white uppercase tracking-widest text-sm mb-4 relative">{plan.name}</h3>
                                     <div className="mb-6 relative">
                                         <span className="text-5xl font-black text-white">${plan.price}</span>
-                                        <span className="text-slate-500 text-sm font-bold">/mês</span>
+                                        <span className="text-slate-500 text-sm font-bold">/mo</span>
                                     </div>
                                     <ul className="space-y-3 mb-8 flex-1 relative">
                                         {[
-                                            `${plan.clients} clientes ativos`,
-                                            `${plan.technicians} técnico${plan.technicians > 1 ? 's' : ''}`,
-                                            'Emissão de relatórios',
-                                            'Conformidade NFPA 96',
+                                            `${plan.clients} active clients`,
+                                            `${plan.technicians} technician${plan.technicians > 1 ? 's' : ''}`,
+                                            'Report generation',
+                                            'NFPA 96 compliance',
                                         ].map((f, j) => (
                                             <li key={j} className="flex items-center gap-2 text-slate-300 text-sm">
                                                 <CheckCircle2 size={14} className="text-emerald-500 shrink-0" /> {f}
@@ -318,7 +318,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                                         ))}
                                     </ul>
                                     <button onClick={onStartTrial} className={`relative w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 text-white bg-${plan.color}-600 hover:bg-${plan.color}-500`}>
-                                        Começar Grátis
+                                        Start Free
                                     </button>
                                 </div>
                             );
@@ -329,11 +329,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 p-6 bg-emerald-500/5 rounded-3xl border border-emerald-500/10 max-w-2xl mx-auto text-center sm:text-left">
                         <div className="text-4xl">🎉</div>
                         <div>
-                            <p className="font-black text-white text-lg">Comece com 30 dias grátis</p>
-                            <p className="text-slate-400 text-sm">20 clientes + 2 técnicos + todos os recursos. Sem cartão de crédito.</p>
+                            <p className="font-black text-white text-lg">Start with 30 days free</p>
+                            <p className="text-slate-400 text-sm">20 clients + 2 technicians + all features. No credit card required.</p>
                         </div>
                         <button onClick={onStartTrial} className="shrink-0 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95">
-                            Criar Conta
+                            Create Account
                         </button>
                     </div>
                 </div>
@@ -351,20 +351,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onStartTrial }) => {
                         <Star size={20} fill="currentColor" />
                         <Star size={20} fill="currentColor" />
                     </div>
-                    <h2 className="text-5xl md:text-7xl font-black text-white mb-10 tracking-tighter uppercase italic">Assuma o controle total hoje.</h2>
+                    <h2 className="text-5xl md:text-7xl font-black text-white mb-10 tracking-tighter uppercase italic">Take full control today.</h2>
                     <p className="text-xl md:text-2xl text-slate-400 mb-16 font-medium leading-relaxed max-w-3xl mx-auto">
-                        Pare de perder tempo com planilhas e relatórios manuais. Mude para a plataforma que coloca o seu negócio no piloto automático.
+                        Stop wasting time on spreadsheets and manual reports. Switch to the platform that puts your business on autopilot.
                     </p>
-                    
+
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                         <button onClick={onStartTrial} className="group relative w-full sm:w-auto overflow-hidden rounded-2xl">
                             <div className="absolute inset-0 bg-emerald-600"></div>
                             <div className="relative flex items-center justify-center gap-3 text-slate-950 font-black text-xl px-12 py-6 rounded-2xl shadow-[0_0_40px_rgba(16,185,129,0.3)] transition-all group-hover:scale-105 active:scale-95 uppercase tracking-[0.2em] italic">
-                                Criar Minha Conta <ChevronRight size={24} />
+                                Create My Account <ChevronRight size={24} />
                             </div>
                         </button>
                     </div>
-                    <p className="mt-8 text-slate-600 font-bold uppercase text-[10px] tracking-widest">Setup instantâneo • Sem cartão • 30 dias grátis</p>
+                    <p className="mt-8 text-slate-600 font-bold uppercase text-[10px] tracking-widest">Instant setup • No credit card • 30 days free</p>
                 </div>
             </section>
 

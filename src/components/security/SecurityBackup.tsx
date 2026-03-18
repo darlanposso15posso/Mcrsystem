@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, Download, History, Database, ShieldAlert } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import TwoFactorSetup from './TwoFactorSetup';
 
 interface SecurityBackupProps {
     showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -109,6 +110,8 @@ const SecurityBackup: React.FC<SecurityBackupProps> = ({ showToast }) => {
                     </div>
                 </div>
             </div>
+
+            <TwoFactorSetup showToast={showToast} />
         </div>
     );
 };

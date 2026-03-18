@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, Edit, X, CheckCircle, Users } from 'lucide-react';
+import { Plus, Edit, X, CheckCircle, Users, Link2, Copy } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface TeamManagementProps {
     users: any[];
+    companyId: string;
     setShowUserModal: (show: boolean) => void;
     setEditingUser: (user: any) => void;
     setShowEditUserModal: (show: boolean) => void;
@@ -13,6 +14,7 @@ interface TeamManagementProps {
 
 const TeamManagement: React.FC<TeamManagementProps> = ({
     users,
+    companyId,
     setShowUserModal,
     setEditingUser,
     setShowEditUserModal,
@@ -20,6 +22,15 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     confirmAction
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+
+    const handleCopyInviteLink = () => {
+        const link = `${window.location.origin}/login?invite=${companyId}&role=technician`;
+        navigator.clipboard.writeText(link).then(() => {
+            showToast('Link de convite copiado!', 'success');
+        }).catch(() => {
+            showToast('Não foi possível copiar. Link: ' + link, 'info');
+        });
+    };
 
     const handleApprove = async (id: string | number) => {
         confirmAction("Tem certeza que deseja aprovar este técnico para acessar o aplicativo?", async () => {
@@ -79,6 +90,24 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                     </p>
                 </div>
                 <Users size={120} className="absolute right-0 top-0 opacity-5 -translate-y-4 translate-x-4 text-emerald-500" />
+            </div>
+
+            {/* Invite link banner */}
+            <div className="flex items-center justify-between p-4 bg-blue-500/10 border border-blue-500/20 rounded-none">
+                <div className="flex items-center gap-3">
+                    <Link2 size={16} className="text-blue-400 shrink-0" />
+                    <div>
+                        <p className="text-white text-xs font-black uppercase tracking-widest">Convidar Técnico</p>
+                        <p className="text-slate-400 text-[10px] font-bold">Envie o link abaixo para o técnico criar a conta vinculada à sua empresa.</p>
+                    </div>
+                </div>
+                <button
+                    onClick={handleCopyInviteLink}
+                    disabled={!companyId}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white rounded-none font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-40 shrink-0"
+                >
+                    <Copy size={14} /> Copiar Link
+                </button>
             </div>
 
             {/* Legacy Fallback Table for historical DB profiles */}

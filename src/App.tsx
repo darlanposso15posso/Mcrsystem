@@ -4,10 +4,6 @@ import {
   AlertTriangle,
   Menu,
   CheckCircle2,
-  LayoutDashboard,
-  CalendarDays,
-  Users,
-  ClipboardList
 } from 'lucide-react';
 import { ServiceRecord, User, Client } from './types';
 
@@ -556,7 +552,7 @@ function App() {
             segmentLabels={s}
           />
 
-          <div className="p-4 md:p-8 max-w-7xl mx-auto pb-24 md:pb-8">
+          <div className="p-4 md:p-8 max-w-7xl mx-auto">
 
             {/* Trial / Expired Banner */}
             {user.role === 'admin' && subscription.status === 'trial' && subscription.trialDaysLeft !== null && subscription.trialDaysLeft <= 7 && (
@@ -787,32 +783,6 @@ function App() {
           onClose={() => setUpgradeReason(null)}
         />
       )}
-
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--sidebar-bg)] border-t border-[var(--border-muted)] flex items-center justify-around px-2 py-2 shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
-        {[
-          { id: 'dashboard' as const, icon: <LayoutDashboard size={22} />, label: 'Home' },
-          { id: 'calendar' as const, icon: <CalendarDays size={22} />, label: 'Agenda' },
-          { id: 'clients' as const, icon: <Users size={22} />, label: s?.clients || 'Clientes' },
-          { id: 'services' as const, icon: <ClipboardList size={22} />, label: s?.services || 'Serviços' },
-        ].map(item => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all min-w-0 flex-1 ${activeTab === item.id ? 'text-[#FACC15]' : 'text-slate-500 hover:text-slate-300'}`}
-          >
-            {item.icon}
-            <span className="text-[9px] font-black uppercase tracking-wider truncate">{item.label}</span>
-          </button>
-        ))}
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all min-w-0 flex-1 ${['leads','team','performance','automation','guide','security','billing','admin_settings'].includes(activeTab) ? 'text-[#FACC15]' : 'text-slate-500 hover:text-slate-300'}`}
-        >
-          <Menu size={22} />
-          <span className="text-[9px] font-black uppercase tracking-wider">Menu</span>
-        </button>
-      </nav>
 
       {/* Confirmation Modal */}
       {confirmation && (

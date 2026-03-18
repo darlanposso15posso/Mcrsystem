@@ -88,6 +88,25 @@ serve(async (req) => {
       break;
     }
 
+    case "invoice.paid": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const customer = invoice.customer as string;
+      const { data: company } = await supabase
+        .from("companies")
+        .select("id")
+        .eq("stripe_customer_id", customer)
+        .maybeSingle();
+      if (company?.id) {
+        await updateCompany(company.id, {
+          subscription_status: "active",
+          subscription_period_end: invoice.period_end
+            ? new Date(invoice.period_end * 1000).toISOString()
+            : null,
+        });
+      }
+      break;
+    }
+
     case "invoice.payment_failed": {
       const invoice = event.data.object as Stripe.Invoice;
       const customer = invoice.customer as string;
