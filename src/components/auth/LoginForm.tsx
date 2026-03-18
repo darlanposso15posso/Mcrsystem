@@ -31,7 +31,7 @@ function getStrength(pwd: string): { score: number; label: string; color: string
 type View = 'login' | 'register' | 'forgot' | 'mfa';
 
 const Card = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-[#020617] flex flex-col items-center justify-start sm:justify-center px-4 pt-10 pb-8 relative overflow-y-auto">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/8 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/8 blur-[120px] rounded-full pointer-events-none" />
         <div className="w-full max-w-sm relative z-10">
@@ -41,11 +41,11 @@ const Card = ({ children }: { children: React.ReactNode }) => (
 );
 
 const Logo = () => (
-    <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
-            <img src="/mcr-logo.png" alt="MCR" className="h-8 w-auto object-contain" />
+    <div className="text-center mb-6">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-3">
+            <img src="/mcr-logo.png" alt="MCR" className="h-7 w-auto object-contain" />
         </div>
-        <h1 className="text-xl font-black text-white tracking-tighter uppercase italic">MCR SYSTEM</h1>
+        <h1 className="text-lg font-black text-white tracking-tighter uppercase italic">MCR SYSTEM</h1>
     </div>
 );
 
@@ -503,7 +503,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             {onBack && (
                 <button
                     onClick={onBack}
-                    className="flex items-center gap-2 text-slate-600 hover:text-white text-xs font-bold uppercase tracking-widest mb-6 transition-colors"
+                    className="flex items-center gap-2 text-slate-600 hover:text-white text-xs font-bold uppercase tracking-widest mb-4 transition-colors"
                 >
                     <ArrowLeft size={14} /> Back to Site
                 </button>
@@ -511,7 +511,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
             <Logo />
 
-            <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-6 backdrop-blur-sm space-y-4">
+            <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-5 sm:p-6 backdrop-blur-sm space-y-4">
                 <ErrorBox message={displayError} />
                 <SuccessBox message={successMessage} />
 
@@ -519,7 +519,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 <button
                     onClick={handleGoogleLogin}
                     disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-3 py-3.5 bg-white hover:bg-slate-100 rounded-xl text-slate-900 font-bold text-sm transition-all disabled:opacity-50 shadow-sm"
+                    className="w-full flex items-center justify-center gap-3 py-4 bg-white hover:bg-slate-100 rounded-xl text-slate-900 font-bold text-sm transition-all disabled:opacity-50 shadow-sm active:scale-[0.98]"
                 >
                     <GoogleIcon />
                     Sign in with Google
@@ -532,15 +532,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
                     <div className="flex-1 h-px bg-white/10" />
                 </div>
 
-                <form onSubmit={handleLocalLogin} className="space-y-4">
+                <form onSubmit={handleLocalLogin} className="space-y-3">
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Email address*</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Email</label>
                         <div className="relative">
                             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
                             <input
                                 type="email"
                                 required
-                                autoFocus
+                                autoComplete="email"
                                 className={inputClass}
                                 placeholder="you@email.com"
                                 value={loginEmail}
@@ -550,52 +550,54 @@ const LoginForm: React.FC<LoginFormProps> = ({
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Password*</label>
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Senha</label>
+                            <button
+                                type="button"
+                                onClick={() => { setView('forgot'); setForgotEmail(loginEmail); clearErrors(); }}
+                                className="text-[10px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors"
+                            >
+                                Esqueci a senha
+                            </button>
+                        </div>
                         <div className="relative">
                             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 required
+                                autoComplete="current-password"
                                 className={`${inputClass} pr-11`}
                                 placeholder="••••••••"
                                 value={loginPassword}
                                 onChange={e => setLoginPassword(e.target.value)}
                             />
-                            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors">
+                            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors p-1">
                                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
                         </div>
                     </div>
 
-                    <div className="flex justify-end">
-                        <button
-                            type="button"
-                            onClick={() => { setView('forgot'); setForgotEmail(loginEmail); clearErrors(); }}
-                            className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors"
-                        >
-                            Forgot password?
-                        </button>
-                    </div>
-
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                        className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 rounded-xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                     >
-                        {isLoading ? 'Signing in...' : 'Log In'}
+                        {isLoading ? 'Entrando...' : 'Entrar'}
                     </button>
                 </form>
-            </div>
 
-            <p className="text-center text-xs text-slate-600 mt-5">
-                Don't have an account?{' '}
-                <button
-                    onClick={() => { setView('register'); clearErrors(); setSuccessMessage(''); }}
-                    className="text-emerald-500 font-bold hover:text-emerald-400 transition-colors"
-                >
-                    Create free account
-                </button>
-            </p>
+                <div className="pt-2 border-t border-white/5 text-center">
+                    <p className="text-xs text-slate-600">
+                        Não tem conta?{' '}
+                        <button
+                            onClick={() => { setView('register'); clearErrors(); setSuccessMessage(''); }}
+                            className="text-emerald-500 font-bold hover:text-emerald-400 transition-colors"
+                        >
+                            Criar conta grátis
+                        </button>
+                    </p>
+                </div>
+            </div>
         </Card>
     );
 };
