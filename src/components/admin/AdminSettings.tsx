@@ -27,6 +27,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, fetchData
     const [fontFamily, setFontFamily] = useState(settings['font_family'] || '"Inter", sans-serif');
     const [glowIntensity, setGlowIntensity] = useState(settings['glow_intensity'] || '0.12');
     const [currentSegment, setCurrentSegment] = useState(settings['segment'] || 'hood_cleaning');
+    const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
 
     const themes = [
         {
@@ -149,16 +150,18 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, fetchData
         { label: 'Plus Jakarta Sans', value: '"Plus Jakarta Sans", sans-serif' }
     ];
 
-    const applyTheme = async (themeColors: Record<string, string>) => {
+    const saveColorSetting = async (key: string, value: string) => {
+        const companyId = user?.companyId || 'personal';
+        await upsertSetting(key, value, companyId);
+    };
+
+    const applyTheme = async (themeId: string, themeColors: Record<string, string>) => {
         setIsSaving(true);
         try {
             const companyId = user?.companyId || 'personal';
-            const promises = Object.entries(themeColors).map(([key, value]) => 
+            await Promise.all(Object.entries(themeColors).map(([key, value]) =>
                 upsertSetting(key, value, companyId)
-            );
-            await Promise.all(promises);
-            
-            // Update local state
+            ));
             if (themeColors.primary_color) setPrimaryColor(themeColors.primary_color);
             if (themeColors.bg_color) setBgColor(themeColors.bg_color);
             if (themeColors.card_color) setCardColor(themeColors.card_color);
@@ -166,12 +169,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, fetchData
             if (themeColors.header_bg) setHeaderBg(themeColors.header_bg);
             if (themeColors.text_primary) setTextColor(themeColors.text_primary);
             if (themeColors.font_family) setFontFamily(themeColors.font_family);
-            
-            await fetchData();
-            showToast("Theme applied successfully!", 'success');
+            setActiveThemeId(themeId);
+            showToast("Tema aplicado com sucesso!", 'success');
         } catch (error) {
-            console.error("Error applying theme:", error);
-            showToast("Error applying theme.", 'error');
+            showToast("Erro ao aplicar tema.", 'error');
         } finally {
             setIsSaving(false);
         }
@@ -402,162 +403,127 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, fetchData
                                     </div>
                                     <div>
                                         <h3 className="font-black text-white uppercase italic tracking-tight text-lg">Theme Presets</h3>
-                                        <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Combinações geradas pelo sistema em um clique</p>
+                                        <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Combinações prontas — aplica em um clique</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {themes.map(theme => (
-                                        <button
-                                            key={theme.id}
-                                            onClick={() => applyTheme(theme.colors)}
-                                            className="group relative flex flex-col items-center justify-center p-4 border border-[var(--border-muted)] hover:border-blue-500 transition-all rounded-xl overflow-hidden"
-                                            style={{ background: theme.colors.bg_color }}
-                                        >
-                                            <div className="flex gap-1 mb-2">
-                                                <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.primary_color }}></div>
-                                                <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.card_color }}></div>
-                                                <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.sidebar_bg }}></div>
-                                            </div>
-                                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.colors.text_primary }}>{theme.label}</span>
-                                        </button>
-                                    ))}
+                                    {themes.map(theme => {
+                                        const isActive = activeThemeId === theme.id;
+                                        return (
+                                            <button
+                                                key={theme.id}
+                                                onClick={() => applyTheme(theme.id, theme.colors)}
+                                                disabled={isSaving}
+                                                className={`group relative flex flex-col items-center justify-center p-4 border transition-all rounded-xl overflow-hidden ${isActive ? 'border-blue-500 ring-2 ring-blue-500/40' : 'border-[var(--border-muted)] hover:border-blue-500'}`}
+                                                style={{ background: theme.colors.bg_color }}
+                                            >
+                                                {isActive && (
+                                                    <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                                        <Save size={10} className="text-white" />
+                                                    </div>
+                                                )}
+                                                <div className="flex gap-1 mb-2">
+                                                    <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.primary_color }}></div>
+                                                    <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.card_color }}></div>
+                                                    <div className="w-5 h-5 rounded-full border-2 border-white/20 shadow" style={{ backgroundColor: theme.colors.sidebar_bg }}></div>
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.colors.text_primary }}>{theme.label}</span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
-                            {/* Detailed Customization */}
+                            {/* Fine-Tuning */}
                             <div className="bg-[var(--card-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl blue-glow">
                                 <div className="flex items-center gap-4 mb-8 border-b border-[var(--border-muted)] pb-4">
                                     <div className="w-12 h-12 bg-pink-500/10 border border-pink-500/20 rounded-none flex items-center justify-center text-pink-500">
                                         <Palette size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-white uppercase italic tracking-tight text-lg">Fine-Tuning HUD</h3>
-                                        <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Ajuste cada detalhe da sua interface futurista</p>
+                                        <h3 className="font-black text-white uppercase italic tracking-tight text-lg">Fine-Tuning</h3>
+                                        <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Ajuste manual — salva ao soltar o mouse ou ao sair do campo</p>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-6">
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">Font Philosophy</label>
-                                            <select
-                                                value={fontFamily}
-                                                onChange={(e) => {
-                                                    setFontFamily(e.target.value);
-                                                    handleSaveSetting('font_family', e.target.value);
-                                                }}
-                                                className="w-full bg-black/40 border border-[var(--border-muted)] text-[var(--text-primary)] px-4 py-3 rounded-none text-xs font-bold focus:border-blue-600/50 outline-none"
-                                            >
-                                                {fonts.map(font => (
-                                                    <option key={font.value} value={font.value}>{font.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">Primary Pulse</label>
-                                            <div className="flex gap-4 items-center">
-                                                <input
-                                                    type="color"
-                                                    value={primaryColor}
-                                                    onChange={(e) => {
-                                                        setPrimaryColor(e.target.value);
-                                                        handleSaveSetting('primary_color', e.target.value);
-                                                    }}
-                                                    className="w-12 h-12 bg-transparent border-none cursor-pointer"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={primaryColor}
-                                                    readOnly
-                                                    className="bg-black/20 border border-[var(--border-muted)] px-4 py-2 rounded-none text-[10px] font-mono text-[var(--text-muted)] flex-1"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">Core Background</label>
-                                            <div className="flex gap-4 items-center">
-                                                <input
-                                                    type="color"
-                                                    value={bgColor}
-                                                    onChange={(e) => {
-                                                        setBgColor(e.target.value);
-                                                        handleSaveSetting('bg_color', e.target.value);
-                                                    }}
-                                                    className="w-12 h-12 bg-transparent border-none cursor-pointer"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={bgColor}
-                                                    readOnly
-                                                    className="bg-black/20 border border-[var(--border-muted)] px-4 py-2 rounded-none text-[10px] font-mono text-[var(--text-muted)] flex-1"
-                                                />
-                                            </div>
-                                        </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Fonte */}
+                                    <div className="md:col-span-2">
+                                        <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">Fonte</label>
+                                        <select
+                                            value={fontFamily}
+                                            onChange={(e) => {
+                                                setFontFamily(e.target.value);
+                                                saveColorSetting('font_family', e.target.value);
+                                            }}
+                                            className="w-full bg-black/40 border border-[var(--border-muted)] text-[var(--text-primary)] px-4 py-3 rounded-none text-xs font-bold focus:border-blue-600/50 outline-none"
+                                        >
+                                            {fonts.map(font => (
+                                                <option key={font.value} value={font.value}>{font.label}</option>
+                                            ))}
+                                        </select>
                                     </div>
 
-                                    <div className="space-y-6">
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">Sidebar Shield</label>
-                                            <div className="flex gap-4 items-center">
+                                    {/* Helper para cada campo de cor */}
+                                    {([
+                                        { label: 'Cor Principal', stateVal: primaryColor, setState: setPrimaryColor, cssVar: '--primary-color', key: 'primary_color' },
+                                        { label: 'Fundo Geral', stateVal: bgColor, setState: setBgColor, cssVar: '--bg-color', key: 'bg_color' },
+                                        { label: 'Cor dos Cards', stateVal: cardColor, setState: setCardColor, cssVar: '--card-color', key: 'card_color' },
+                                        { label: 'Sidebar', stateVal: sidebarBg, setState: setSidebarBg, cssVar: '--sidebar-bg', key: 'sidebar_bg' },
+                                        { label: 'Texto Principal', stateVal: textColor, setState: setTextColor, cssVar: '--text-primary', key: 'text_primary' },
+                                    ] as { label: string; stateVal: string; setState: (v: string) => void; cssVar: string; key: string }[]).map(({ label, stateVal, setState, cssVar, key }) => (
+                                        <div key={key}>
+                                            <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">{label}</label>
+                                            <div className="flex gap-3 items-center">
                                                 <input
                                                     type="color"
-                                                    value={sidebarBg}
+                                                    value={stateVal.startsWith('#') ? stateVal : '#000000'}
                                                     onChange={(e) => {
-                                                        setSidebarBg(e.target.value);
-                                                        handleSaveSetting('sidebar_bg', e.target.value);
+                                                        setState(e.target.value);
+                                                        document.documentElement.style.setProperty(cssVar, e.target.value);
                                                     }}
-                                                    className="w-12 h-12 bg-transparent border-none cursor-pointer"
+                                                    onBlur={(e) => saveColorSetting(key, e.target.value)}
+                                                    className="w-12 h-10 bg-transparent border border-[var(--border-muted)] cursor-pointer rounded-none p-0.5"
                                                 />
                                                 <input
                                                     type="text"
-                                                    value={sidebarBg}
-                                                    readOnly
-                                                    className="bg-black/20 border border-[var(--border-muted)] px-4 py-2 rounded-none text-[10px] font-mono text-[var(--text-muted)] flex-1"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">Text Dominance</label>
-                                            <div className="flex gap-4 items-center">
-                                                <input
-                                                    type="color"
-                                                    value={textColor}
+                                                    value={stateVal}
                                                     onChange={(e) => {
-                                                        setTextColor(e.target.value);
-                                                        handleSaveSetting('text_primary', e.target.value);
+                                                        const v = e.target.value;
+                                                        setState(v);
+                                                        if (/^#[0-9A-Fa-f]{6}$/.test(v)) {
+                                                            document.documentElement.style.setProperty(cssVar, v);
+                                                        }
                                                     }}
-                                                    className="w-12 h-12 bg-transparent border-none cursor-pointer"
+                                                    onBlur={(e) => {
+                                                        if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+                                                            saveColorSetting(key, e.target.value);
+                                                        }
+                                                    }}
+                                                    placeholder="#000000"
+                                                    className="bg-black/20 border border-[var(--border-muted)] px-4 py-2 rounded-none text-[10px] font-mono text-[var(--text-primary)] flex-1 focus:border-blue-600/50 outline-none"
                                                 />
-                                                <input
-                                                    type="text"
-                                                    value={textColor}
-                                                    readOnly
-                                                    className="bg-black/20 border border-[var(--border-muted)] px-4 py-2 rounded-none text-[10px] font-mono text-[var(--text-muted)] flex-1"
-                                                />
+                                                <div className="w-8 h-8 rounded-none border border-[var(--border-muted)]" style={{ backgroundColor: stateVal }} />
                                             </div>
                                         </div>
+                                    ))}
 
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">Glow Intensity: {glowIntensity}</label>
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max="1"
-                                                step="0.1"
-                                                value={glowIntensity}
-                                                onChange={(e) => {
-                                                    setGlowIntensity(e.target.value);
-                                                    handleSaveSetting('glow_intensity', e.target.value);
-                                                }}
-                                                className="w-full h-2 bg-[var(--card-alt-color)] rounded-none appearance-none cursor-pointer accent-blue-600"
-                                            />
-                                            <div className="flex justify-between mt-2">
-                                                <span className="text-[8px] text-[var(--text-faint)] font-black uppercase tracking-widest">Stealth Node</span>
-                                                <span className="text-[8px] text-[var(--text-faint)] font-black uppercase tracking-widest">Hyper Drive</span>
-                                            </div>
+                                    {/* Glow */}
+                                    <div className="md:col-span-2">
+                                        <label className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest block mb-3">
+                                            Intensidade do Glow: <span className="text-blue-500">{glowIntensity}</span>
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="0" max="1" step="0.05"
+                                            value={glowIntensity}
+                                            onChange={(e) => setGlowIntensity(e.target.value)}
+                                            onBlur={(e) => saveColorSetting('glow_intensity', e.target.value)}
+                                            className="w-full h-2 bg-[var(--card-alt-color)] rounded-none appearance-none cursor-pointer accent-blue-600"
+                                        />
+                                        <div className="flex justify-between mt-1">
+                                            <span className="text-[8px] text-[var(--text-faint)] font-black uppercase">Sem brilho</span>
+                                            <span className="text-[8px] text-[var(--text-faint)] font-black uppercase">Máximo</span>
                                         </div>
                                     </div>
                                 </div>
