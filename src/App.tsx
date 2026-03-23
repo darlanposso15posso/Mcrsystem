@@ -61,7 +61,8 @@ function App() {
 
   // ── Auth / User ──────────────────────────────────────────────────────────
   const [user, setUser] = useState<User | null>(null);
-  const companyId = user?.companyId ?? '';
+  // Fallback: use user.id as company_id for solo/admin accounts where company_id is not set
+  const companyId = user?.companyId || user?.id || '';
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [loginEmail, setLoginEmail] = useState('');
@@ -217,6 +218,7 @@ function App() {
               name: minimalUser.name,
               role: 'admin',
               status: 'active',
+              company_id: session.user.id, // use auth ID as company ID for solo admins
             }, { onConflict: 'id' })
             .select()
             .single();

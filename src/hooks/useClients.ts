@@ -69,24 +69,32 @@ export function useClients({ showToast, confirmAction, userRole, companyId, onLi
         if (error) { showToast(error, 'error'); return; }
         if (!companyId) { showToast('Empresa não identificada. Faça login novamente.', 'error'); return; }
 
-        const addressStr = `${newClient.address}, ${newClient.city}, ${newClient.state}, ${newClient.zip}`;
-        const geo = await geocodeAddress(addressStr);
-        // unmapClient now requires companyId — it's enforced by RLS on the DB side too
-        const payload = unmapClient({
-            ...newClient,
-            companyId,
-            lat: geo?.lat ?? undefined,
-            lng: geo?.lng ?? undefined,
-        });
+        try {
+            const addressStr = `${newClient.address}, ${newClient.city}, ${newClient.state}, ${newClient.zip}`;
+            const geo = await geocodeAddress(addressStr);
+            const payload = unmapClient({
+                ...newClient,
+                companyId,
+                lat: geo?.lat ?? undefined,
+                lng: geo?.lng ?? undefined,
+            });
 
-        const { data, error: dbErr } = await supabase.from('clients').insert([payload]).select().single();
-        if (dbErr) { showToast('Erro ao adicionar cliente', 'error'); return; }
+            const { data, error: dbErr } = await supabase.from('clients').insert([payload]).select().single();
+            if (dbErr) {
+                console.error('Supabase insert error:', dbErr);
+                showToast(`Erro ao salvar: ${dbErr.message}`, 'error');
+                return;
+            }
 
-        if (data) {
-            setClients(prev => [...prev, mapClient(data)]);
-            setShowClientModal(false);
-            setNewClient(makeEmptyClient(companyId));
-            showToast('Cliente criado com sucesso!');
+            if (data) {
+                setClients(prev => [...prev, mapClient(data)]);
+                setShowClientModal(false);
+                setNewClient(makeEmptyClient(companyId));
+                showToast('Cliente criado com sucesso!');
+            }
+        } catch (err: any) {
+            console.error('Unexpected error creating client:', err);
+            showToast(`Erro inesperado: ${err?.message || 'verifique o console'}`, 'error');
         }
     }, [newClient, userRole, companyId, showToast]);
 
@@ -97,23 +105,31 @@ export function useClients({ showToast, confirmAction, userRole, companyId, onLi
         const error = validateClient(editingClient, userRole);
         if (error) { showToast(error, 'error'); return; }
 
-        const addressStr = `${editingClient.address}, ${editingClient.city}, ${editingClient.state}, ${editingClient.zip}`;
-        const geo = await geocodeAddress(addressStr);
-        const lat = geo?.lat ?? editingClient.lat;
-        const lng = geo?.lng ?? editingClient.lng;
+        try {
+            const addressStr = `${editingClient.address}, ${editingClient.city}, ${editingClient.state}, ${editingClient.zip}`;
+            const geo = await geocodeAddress(addressStr);
+            const lat = geo?.lat ?? editingClient.lat;
+            const lng = geo?.lng ?? editingClient.lng;
 
-        // For updates, companyId comes from the existing record (RLS validates via USING clause)
-        const { data, error: dbErr } = await supabase.from('clients')
-            .update(unmapClient({ ...editingClient, companyId: editingClient.companyId, lat, lng }))
-            .eq('id', editingClient.id)
-            .select().single();
+            const { data, error: dbErr } = await supabase.from('clients')
+                .update(unmapClient({ ...editingClient, companyId: editingClient.companyId, lat, lng }))
+                .eq('id', editingClient.id)
+                .select().single();
 
-        if (dbErr) { showToast('Erro ao atualizar cliente', 'error'); return; }
-        if (data) setClients(prev => prev.map(c => c.id === editingClient.id ? mapClient(data) : c));
+            if (dbErr) {
+                console.error('Supabase update error:', dbErr);
+                showToast(`Erro ao atualizar: ${dbErr.message}`, 'error');
+                return;
+            }
+            if (data) setClients(prev => prev.map(c => c.id === editingClient.id ? mapClient(data) : c));
 
-        setShowEditClientModal(false);
-        setEditingClient(null);
-        showToast('Cliente atualizado!');
+            setShowEditClientModal(false);
+            setEditingClient(null);
+            showToast('Cliente atualizado!');
+        } catch (err: any) {
+            console.error('Unexpected error updating client:', err);
+            showToast(`Erro inesperado: ${err?.message || 'verifique o console'}`, 'error');
+        }
     }, [editingClient, userRole, showToast]);
 
     const handleDeleteClient = useCallback((id: string | number) => {
