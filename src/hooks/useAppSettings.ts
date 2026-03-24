@@ -24,26 +24,31 @@ export function useAppSettings(companyId?: string) {
         fetchSettings();
     }, [fetchSettings]);
 
-    // Apply CSS custom properties whenever settings change
+    // Apply CSS custom properties — batched in one rAF to avoid style thrashing
     useEffect(() => {
-        const root = document.documentElement;
-        if (settings['primary_color']) {
-            root.style.setProperty('--primary-color', settings['primary_color']);
-            // Generate a slightly darker hover color automatically if not provided
-            root.style.setProperty('--primary-color-hover', settings['primary_color_hover'] || settings['primary_color'] + 'cc');
-        }
-        if (settings['bg_color']) root.style.setProperty('--bg-color', settings['bg_color']);
-        if (settings['card_color']) root.style.setProperty('--card-color', settings['card_color']);
-        if (settings['card_alt_color']) root.style.setProperty('--card-alt-color', settings['card_alt_color']);
-        if (settings['sidebar_bg']) root.style.setProperty('--sidebar-bg', settings['sidebar_bg']);
-        if (settings['sidebar_text']) root.style.setProperty('--sidebar-text', settings['sidebar_text']);
-        if (settings['header_bg']) root.style.setProperty('--header-bg', settings['header_bg']);
-        if (settings['text_primary']) root.style.setProperty('--text-primary', settings['text_primary']);
-        if (settings['text_muted']) root.style.setProperty('--text-muted', settings['text_muted']);
-        if (settings['border_color']) root.style.setProperty('--border-color', settings['border_color']);
-        if (settings['border_muted']) root.style.setProperty('--border-muted', settings['border_muted']);
-        if (settings['font_family']) root.style.setProperty('--font-family', settings['font_family']);
-        if (settings['glow_intensity']) root.style.setProperty('--glow-intensity', settings['glow_intensity']);
+        const handle = requestAnimationFrame(() => {
+            const root = document.documentElement;
+            const set = (prop: string, key: string) => {
+                if (settings[key]) root.style.setProperty(prop, settings[key]);
+            };
+            if (settings['primary_color']) {
+                root.style.setProperty('--primary-color', settings['primary_color']);
+                root.style.setProperty('--primary-color-hover', settings['primary_color_hover'] || settings['primary_color'] + 'cc');
+            }
+            set('--bg-color',       'bg_color');
+            set('--card-color',     'card_color');
+            set('--card-alt-color', 'card_alt_color');
+            set('--sidebar-bg',     'sidebar_bg');
+            set('--sidebar-text',   'sidebar_text');
+            set('--header-bg',      'header_bg');
+            set('--text-primary',   'text_primary');
+            set('--text-muted',     'text_muted');
+            set('--border-color',   'border_color');
+            set('--border-muted',   'border_muted');
+            set('--font-family',    'font_family');
+            set('--glow-intensity', 'glow_intensity');
+        });
+        return () => cancelAnimationFrame(handle);
     }, [settings]);
 
     const currentLanguage = (settings['language'] as Language) || 'pt';

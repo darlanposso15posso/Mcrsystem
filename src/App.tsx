@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
 import {
   X,
   AlertTriangle,
@@ -7,27 +7,30 @@ import {
 } from 'lucide-react';
 import { ServiceRecord, User, Client } from './types';
 
-// Components
+// Components — eagerly loaded (needed on first render)
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import LandingPage from './components/landing/LandingPage';
 import Dashboard from './components/dashboard/Dashboard';
 import ClientList from './components/clients/ClientList';
 import ServiceHistory from './components/services/ServiceHistory';
-import TeamManagement from './components/team/TeamManagement';
-import Performance from './components/performance/Performance';
-import SecurityBackup from './components/security/SecurityBackup';
-import Automation from './components/automation/Automation';
-import LeadManagement from './components/leads/LeadManagement';
-import ConfigGuide from './components/guide/ConfigGuide';
 import Modals from './components/common/Modals';
-import CalendarView from './components/calendar/CalendarView';
-import AdminSettings from './components/admin/AdminSettings';
-import AIMaster from './components/ai/AIMaster';
-import { segmentLabels } from './translations/segments';
-import BillingPage from './components/subscription/BillingPage';
-import UpgradeModal from './components/subscription/UpgradeModal';
 import SessionTimeoutModal from './components/auth/SessionTimeoutModal';
+
+// Components — lazily loaded (only downloaded when the user navigates to that tab)
+const CalendarView   = lazy(() => import('./components/calendar/CalendarView'));
+const AdminSettings  = lazy(() => import('./components/admin/AdminSettings'));
+const AIMaster       = lazy(() => import('./components/ai/AIMaster'));
+const TeamManagement = lazy(() => import('./components/team/TeamManagement'));
+const Performance    = lazy(() => import('./components/performance/Performance'));
+const SecurityBackup = lazy(() => import('./components/security/SecurityBackup'));
+const Automation     = lazy(() => import('./components/automation/Automation'));
+const LeadManagement = lazy(() => import('./components/leads/LeadManagement'));
+const ConfigGuide    = lazy(() => import('./components/guide/ConfigGuide'));
+const BillingPage    = lazy(() => import('./components/subscription/BillingPage'));
+const UpgradeModal   = lazy(() => import('./components/subscription/UpgradeModal'));
+
+import { segmentLabels } from './translations/segments';
 
 // Utils
 import { generatePDF } from './utils/pdfGenerator';
@@ -634,79 +637,81 @@ function App() {
               />
             )}
 
-            {activeTab === 'calendar' && (
-              <CalendarView clients={clients} services={services} settings={settings} segmentLabels={s} />
-            )}
+            <Suspense fallback={<div className="flex items-center justify-center h-48"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+              {activeTab === 'calendar' && (
+                <CalendarView clients={clients} services={services} settings={settings} segmentLabels={s} />
+              )}
 
-            {activeTab === 'leads' && user.role === 'admin' && (
-              <LeadManagement
-                leads={leads}
-                isLoading={isLoadingLeads}
-                showLeadModal={showLeadModal}
-                setShowLeadModal={setShowLeadModal}
-                editingLead={editingLead}
-                setEditingLead={setEditingLead}
-                handleCreateLead={handleCreateLead}
-                handleUpdateLead={handleUpdateLead}
-                handleDeleteLead={handleDeleteLead}
-                showToast={showToast}
-              />
-            )}
+              {activeTab === 'leads' && user.role === 'admin' && (
+                <LeadManagement
+                  leads={leads}
+                  isLoading={isLoadingLeads}
+                  showLeadModal={showLeadModal}
+                  setShowLeadModal={setShowLeadModal}
+                  editingLead={editingLead}
+                  setEditingLead={setEditingLead}
+                  handleCreateLead={handleCreateLead}
+                  handleUpdateLead={handleUpdateLead}
+                  handleDeleteLead={handleDeleteLead}
+                  showToast={showToast}
+                />
+              )}
 
-            {activeTab === 'services' && (
-              <ServiceHistory
-                user={user}
-                clients={clients}
-                filteredServices={services}
-                generatePDF={generatePDF}
-                logoUrl={settings?.logo_image}
-                settings={settings}
-                segmentLabels={s}
-                showToast={showToast}
-              />
-            )}
+              {activeTab === 'services' && (
+                <ServiceHistory
+                  user={user}
+                  clients={clients}
+                  filteredServices={services}
+                  generatePDF={generatePDF}
+                  logoUrl={settings?.logo_image}
+                  settings={settings}
+                  segmentLabels={s}
+                  showToast={showToast}
+                />
+              )}
 
-            {activeTab === 'team' && user.role === 'admin' && (
-              <TeamManagement
-                users={users}
-                companyId={companyId}
-                setShowUserModal={setShowUserModal}
-                setEditingUser={setEditingUser}
-                setShowEditUserModal={setShowEditUserModal}
-                showToast={showToast}
-                confirmAction={confirmAction}
-              />
-            )}
+              {activeTab === 'team' && user.role === 'admin' && (
+                <TeamManagement
+                  users={users}
+                  companyId={companyId}
+                  setShowUserModal={setShowUserModal}
+                  setEditingUser={setEditingUser}
+                  setShowEditUserModal={setShowEditUserModal}
+                  showToast={showToast}
+                  confirmAction={confirmAction}
+                />
+              )}
 
-            {activeTab === 'performance' && user.role === 'admin' && (
-              <Performance users={users} services={services} />
-            )}
+              {activeTab === 'performance' && user.role === 'admin' && (
+                <Performance users={users} services={services} />
+              )}
 
-            {activeTab === 'admin_settings' && user.role === 'admin' && (
-              <AdminSettings user={user} settings={settings} fetchData={fetchData} showToast={showToast} upsertSetting={upsertSetting} />
-            )}
+              {activeTab === 'admin_settings' && user.role === 'admin' && (
+                <AdminSettings user={user} settings={settings} fetchData={fetchData} showToast={showToast} upsertSetting={upsertSetting} />
+              )}
 
-            {activeTab === 'security' && user.role === 'admin' && (
-              <SecurityBackup showToast={showToast} />
-            )}
+              {activeTab === 'security' && user.role === 'admin' && (
+                <SecurityBackup showToast={showToast} />
+              )}
 
-            {activeTab === 'automation' && user.role === 'admin' && (
-              <Automation user={user} settings={settings} fetchData={fetchData} showToast={showToast} upsertSetting={upsertSetting} />
-            )}
+              {activeTab === 'automation' && user.role === 'admin' && (
+                <Automation user={user} settings={settings} fetchData={fetchData} showToast={showToast} upsertSetting={upsertSetting} />
+              )}
 
-            {activeTab === 'guide' && user.role === 'admin' && (
-              <ConfigGuide />
-            )}
+              {activeTab === 'guide' && user.role === 'admin' && (
+                <ConfigGuide />
+              )}
 
-            {activeTab === 'billing' && user.role === 'admin' && (
-              <BillingPage
-                subscription={subscription}
-                companyId={companyId}
-                clientCount={clients.length}
-                technicianCount={users.filter(u => u.role === 'technician').length}
-                companyName={settings?.company_name ?? ''}
-              />
-            )}
+              {activeTab === 'billing' && user.role === 'admin' && (
+                <BillingPage
+                  subscription={subscription}
+                  companyId={companyId}
+                  clientCount={clients.length}
+                  technicianCount={users.filter(u => u.role === 'technician').length}
+                  companyName={settings?.company_name ?? ''}
+                />
+              )}
+            </Suspense>
           </div>
         </main>
 
@@ -749,10 +754,12 @@ function App() {
 
       {/* AI Master — assistente flutuante disponível em todas as telas */}
       {user && (
-        <AIMaster
-          activeTab={activeTab}
-          user={user}
-        />
+        <Suspense fallback={null}>
+          <AIMaster
+            activeTab={activeTab}
+            user={user}
+          />
+        </Suspense>
       )}
 
       {/* Toast */}
@@ -778,12 +785,14 @@ function App() {
 
       {/* Upgrade Modal */}
       {upgradeReason && (
-        <UpgradeModal
-          reason={upgradeReason}
-          companyId={companyId}
-          currentPlanId={subscription.planId}
-          onClose={() => setUpgradeReason(null)}
-        />
+        <Suspense fallback={null}>
+          <UpgradeModal
+            reason={upgradeReason}
+            companyId={String(companyId)}
+            currentPlanId={subscription.planId}
+            onClose={() => setUpgradeReason(null)}
+          />
+        </Suspense>
       )}
 
       {/* Confirmation Modal */}

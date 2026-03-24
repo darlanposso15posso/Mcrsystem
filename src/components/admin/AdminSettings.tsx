@@ -12,7 +12,7 @@ interface AdminSettingsProps {
     upsertSetting: (key: string, value: string, companyId?: string) => Promise<{ error: any }>;
 }
 
-const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, fetchData, showToast, upsertSetting }) => {
+const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast, upsertSetting }) => {
     const [currentLanguage, setCurrentLanguage] = useState<Language>((settings['language'] as Language) || 'pt');
     const [isSaving, setIsSaving] = useState(false);
     const [activeSection, setActiveSection] = useState<'general' | 'localization' | 'security' | 'business' | 'branding' | 'segment' | 'team'>('localization');
@@ -191,11 +191,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, fetchData
     const handleSaveSetting = async (key: string, value: string) => {
         setIsSaving(true);
         try {
-            const companyId = user?.companyId || 'personal';
+            const companyId = String(user?.companyId || user?.id || 'personal');
             const { error } = await upsertSetting(key, value, companyId);
             if (error) throw error;
-            // setSettings in the hook already updates local state, but we might need to re-fetch complex derivations
-            await fetchData();
+            // upsertSetting already updates local state via setSettings — no refetch needed
         } catch (error) {
             console.error("Error saving setting:", error);
             showToast("Error saving setting.", 'error');
