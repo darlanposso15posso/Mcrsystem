@@ -102,6 +102,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
     const [localError, setLocalError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
+    // ── Rate limiting (brute force protection) ────────────────────────────
+    const MAX_ATTEMPTS = 5;
+    const LOCKOUT_MS   = 15 * 60 * 1000; // 15 minutes
+    const [loginAttempts, setLoginAttempts] = useState(0);
+    const [lockedUntil,   setLockedUntil]   = useState<number | null>(null);
+
+    const isLocked = lockedUntil !== null && Date.now() < lockedUntil;
+    const lockoutSecondsLeft = isLocked ? Math.ceil((lockedUntil! - Date.now()) / 1000) : 0;
+
     const strength = getStrength(loginPassword);
     const displayError = loginError || localError;
 
@@ -145,13 +154,31 @@ const LoginForm: React.FC<LoginFormProps> = ({
     const handleLocalLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         clearErrors();
+
+        // Rate limiting check
+        if (isLocked) {
+            setLocalError(`Muitas tentativas. Aguarde ${Math.ceil(lockoutSecondsLeft / 60)} min antes de tentar novamente.`);
+            return;
+        }
+
         setIsLoading(true);
         try {
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: loginEmail,
                 password: loginPassword,
             });
-            if (error) throw error;
+            if (error) {
+                const next = loginAttempts + 1;
+                setLoginAttempts(next);
+                if (next >= MAX_ATTEMPTS) {
+                    setLockedUntil(Date.now() + LOCKOUT_MS);
+                    setLoginAttempts(0);
+                    throw new Error(`Conta bloqueada por 15 minutos após ${MAX_ATTEMPTS} tentativas falhas.`);
+                }
+                throw error;
+            }
+            setLoginAttempts(0);
+            setLockedUntil(null);
             if (!data.user) throw new Error('Authentication failed');
 
             const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();

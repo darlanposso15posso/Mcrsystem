@@ -5,19 +5,21 @@ import TwoFactorSetup from './TwoFactorSetup';
 
 interface SecurityBackupProps {
     showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+    companyId: string;
 }
 
-const SecurityBackup: React.FC<SecurityBackupProps> = ({ showToast }) => {
+const SecurityBackup: React.FC<SecurityBackupProps> = ({ showToast, companyId }) => {
     const [isExporting, setIsExporting] = useState(false);
 
     const handleDownloadBackup = async () => {
+        if (!companyId) { showToast('Erro: company ID não encontrado.', 'error'); return; }
         setIsExporting(true);
         try {
-            // Fetch all core data for export
+            // Scoped by company_id — never export data from other companies
             const [clientsRes, servicesRes, settingsRes] = await Promise.all([
-                supabase.from('clients').select('*'),
-                supabase.from('services').select('*'),
-                supabase.from('settings').select('*')
+                supabase.from('clients').select('*').eq('company_id', companyId),
+                supabase.from('services').select('*').eq('company_id', companyId),
+                supabase.from('settings').select('*').eq('company_id', companyId)
             ]);
 
             const exportData = {

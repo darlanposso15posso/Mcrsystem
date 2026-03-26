@@ -293,14 +293,17 @@ function App() {
   // ── Data fetching ─────────────────────────────────────────────────────────
   const fetchData = useCallback(async (currentUser: User | null = user) => {
     if (!currentUser) return;
+    // Scoped company identifier — never fetch data outside this company
+    const cid = currentUser.companyId || currentUser.id;
+    if (!cid) return; // refuse to fetch unscoped data
     try {
       const [clientsRes, servicesRes, activeServiceRes, settingsRes, notificationsRes, profilesRes] = await Promise.all([
-        supabase.from('clients').select('id, name, legal_name, dba, establishment_type, business_hours, address, city, state, zip, county, manager_name, manager_role, phone, email, hood_count, filter_count, duct_type, duct_height, roof_access, recurrence, last_service_date, next_service_date, cleaning_price, lat, lng, created_at'),
-        supabase.from('services').select('id, client_id, restaurant_name, volume, system_type, condition_before, services_performed, technician_name, service_date, next_service_date, fire_hazard, nfpa_compliance, report_number, notes, inspection_start_time, status, completion_time').order('service_date', { ascending: false }).limit(50),
-        supabase.from('services').select('*').eq('status', 'IN_PROGRESS').eq('technician_name', currentUser.name).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('clients').select('id, name, legal_name, dba, establishment_type, business_hours, address, city, state, zip, county, manager_name, manager_role, phone, email, hood_count, filter_count, duct_type, duct_height, roof_access, recurrence, last_service_date, next_service_date, cleaning_price, lat, lng, created_at').eq('company_id', cid),
+        supabase.from('services').select('id, client_id, restaurant_name, volume, system_type, condition_before, services_performed, technician_name, service_date, next_service_date, fire_hazard, nfpa_compliance, report_number, notes, inspection_start_time, status, completion_time').eq('company_id', cid).order('service_date', { ascending: false }).limit(50),
+        supabase.from('services').select('*').eq('company_id', cid).eq('status', 'IN_PROGRESS').eq('technician_name', currentUser.name).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         Promise.resolve({ data: [] as any[] }), // Settings handled by useAppSettings
-        currentUser.role === 'admin' ? supabase.from('notifications').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] as any[] }),
-        currentUser.role === 'admin' ? supabase.from('profiles').select('*') : Promise.resolve({ data: [] as any[] }),
+        currentUser.role === 'admin' ? supabase.from('notifications').select('*').eq('company_id', cid).order('created_at', { ascending: false }) : Promise.resolve({ data: [] as any[] }),
+        currentUser.role === 'admin' ? supabase.from('profiles').select('*').eq('company_id', cid) : Promise.resolve({ data: [] as any[] }),
       ]);
 
       const { mapClient } = await import('./lib/supabaseUtils');
@@ -459,9 +462,10 @@ function App() {
   }, [editingUser, showToast]);
 
   const handleDeleteNotification = useCallback(async (id: number) => {
-    await supabase.from('notifications').delete().eq('id', id);
+    // Always scope deletes to the current company to prevent IDOR
+    await supabase.from('notifications').delete().eq('id', id).eq('company_id', companyId);
     setNotifications(prev => prev.filter(n => n.id !== id));
-  }, []);
+  }, [companyId]);
 
   // ── Derived state ─────────────────────────────────────────────────────────
   const deferredSearch = React.useDeferredValue(searchTerm);
@@ -691,7 +695,7 @@ function App() {
               )}
 
               {activeTab === 'security' && user.role === 'admin' && (
-                <SecurityBackup showToast={showToast} />
+                <SecurityBackup showToast={showToast} companyId={companyId} />
               )}
 
               {activeTab === 'automation' && user.role === 'admin' && (

@@ -78,7 +78,8 @@ export const useLeads = ({ showToast, confirmAction, companyId }: UseLeadsProps)
     const handleDeleteLead = (id: string | number) => {
         confirmAction('Tem certeza que deseja excluir esta prospecção?', async () => {
             try {
-                const { error } = await supabase.from('leads').delete().eq('id', id);
+                // company_id scoping prevents IDOR
+                const { error } = await supabase.from('leads').delete().eq('id', id).eq('company_id', companyId);
                 if (error) throw error;
                 setLeads(prev => prev.filter(l => l.id !== id));
                 showToast('Lead excluído com sucesso', 'success');

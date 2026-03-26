@@ -134,14 +134,15 @@ export function useClients({ showToast, confirmAction, userRole, companyId, onLi
 
     const handleDeleteClient = useCallback((id: string | number) => {
         confirmAction('Tem certeza que deseja apagar este cliente? Esta ação não pode ser desfeita.', async () => {
-            const { error } = await supabase.from('clients').delete().eq('id', id);
+            // company_id scoping prevents IDOR — only the owning company can delete
+            const { error } = await supabase.from('clients').delete().eq('id', id).eq('company_id', companyId);
             if (error) { showToast('Erro ao remover cliente', 'error'); return; }
             setClients(prev => prev.filter(c => c.id !== id));
             setShowClientDetails(false);
             setShowEditClientModal(false);
             showToast('Cliente removido com sucesso');
         });
-    }, [confirmAction, showToast]);
+    }, [confirmAction, showToast, companyId]);
 
     return {
         clients,
