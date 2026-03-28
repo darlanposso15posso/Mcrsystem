@@ -119,7 +119,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                         placeholder="Buscar por empresa ou contato..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-3 pl-10 text-xs font-bold text-white placeholder:text-[var(--text-faint)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
+                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-3 pl-10 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-faint)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
                     />
                 </div>
                 <div className="flex gap-2">
@@ -228,7 +228,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                                         required
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
+                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
                                     />
                                 </div>
                                 <div>
@@ -237,7 +237,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                                         type="text"
                                         value={formData.contactName}
                                         onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
+                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
                                     />
                                 </div>
                                 <div>
@@ -246,7 +246,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                                         type="text"
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
+                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
                                     />
                                 </div>
                                 <div>
@@ -255,7 +255,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider lowercase"
+                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider lowercase"
                                     />
                                 </div>
                                 <div className="md:col-span-2">
@@ -264,7 +264,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                                         type="text"
                                         value={formData.address}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
+                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
                                     />
                                 </div>
                                 <div>
@@ -272,7 +272,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                                     <select
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
+                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
                                     >
                                         {Object.values(LeadStatus).map(status => (
                                             <option key={status} value={status} className="bg-[#0a0a0b] text-white font-bold">{status}</option>
@@ -285,7 +285,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                                         type="date"
                                         value={formData.lastContactDate}
                                         onChange={(e) => setFormData({ ...formData, lastContactDate: e.target.value })}
-                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
+                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase tracking-wider"
                                     />
                                 </div>
                                 <div className="md:col-span-2">
@@ -294,7 +294,7 @@ const LeadManagement: React.FC<LeadManagementProps> = ({
                                         rows={4}
                                         value={formData.notes}
                                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all tracking-wider"
+                                        className="w-full bg-[var(--card-alt-color)] border border-[var(--border-color)] p-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all tracking-wider"
                                     ></textarea>
                                 </div>
                             </div>
