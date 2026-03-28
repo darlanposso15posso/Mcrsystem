@@ -65,7 +65,7 @@ function App() {
   // ── Auth / User ──────────────────────────────────────────────────────────
   const [user, setUser] = useState<User | null>(null);
   // Fallback: use user.id as company_id for solo/admin accounts where company_id is not set
-  const companyId = user?.companyId || user?.id || '';
+  const companyId: string = user?.companyId ? String(user.companyId) : user?.id ? String(user.id) : '';
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [loginEmail, setLoginEmail] = useState('');
