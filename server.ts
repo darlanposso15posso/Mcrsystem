@@ -31,7 +31,7 @@ async function startServer() {
     auth: { persistSession: false, autoRefreshToken: false }
   });
 
-  const IMGBB_API_KEY = "965210f6096243bcaa8db7f810681590";
+  const IMGBB_API_KEY = process.env.IMGBB_API_KEY || "965210f6096243bcaa8db7f810681590";
 
   async function uploadBase64ToImgBB(base64String: string, fileName: string): Promise<string> {
     if (!base64String || !base64String.includes('base64,')) return base64String;
@@ -85,14 +85,86 @@ async function startServer() {
     }
   }
 
-  // Security Headers
+  // ── Security Headers ──────────────────────────────────────────────────────
+  const isProd = process.env.NODE_ENV === 'production';
+
+  app.set('trust proxy', 1); // accurate client IP behind reverse proxies
+
   app.use(helmet({
-    contentSecurityPolicy: false, // Disable CSP for development convenience in iframe
+    contentSecurityPolicy: isProd ? {
+      directives: {
+        defaultSrc:     ["'self'"],
+        scriptSrc:      ["'self'", "'unsafe-inline'"],  // Vite SPA needs inline scripts
+        styleSrc:       ["'self'", "'unsafe-inline'"],
+        imgSrc:         ["'self'", "data:", "blob:", "https://i.ibb.co", "https://drive.google.com", "https://lh3.googleusercontent.com"],
+        connectSrc:     ["'self'", "https://*.supabase.co", "wss://*.supabase.co", "https://nominatim.openstreetmap.org"],
+        fontSrc:        ["'self'", "data:"],
+        objectSrc:      ["'none'"],
+        frameAncestors: ["'none'"],
+        upgradeInsecureRequests: [],
+      }
+    } : false,
     crossOriginEmbedderPolicy: false,
+    frameguard: { action: 'deny' },             // X-Frame-Options: DENY
+    referrerPolicy: { policy: 'strict-origin' }, // limit referrer leakage
   }));
 
-  app.use(express.json({ limit: '50mb' }));
-  app.use(express.urlencoded({ limit: '50mb', extended: true }));
+  // ── CORS — restrict to known origins ─────────────────────────────────────
+  const ALLOWED_ORIGINS = [
+    'https://mcrsystem.online',
+    'https://www.mcrsystem.online',
+    ...(isProd ? [] : ['http://localhost:5173', 'http://localhost:3000']),
+  ];
+  app.use((req: any, res: any, next: any) => {
+    const origin = req.headers.origin as string | undefined;
+    if (origin && ALLOWED_ORIGINS.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    }
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    next();
+  });
+
+  // ── In-memory rate limiter (no extra packages) ────────────────────────────
+  const rlStore = new Map<string, { count: number; resetAt: number }>();
+  function rateLimiter(maxRequests: number, windowMs: number) {
+    return (req: any, res: any, next: any) => {
+      const key = (req.ip || req.socket.remoteAddress || 'unknown') + ':' + req.path;
+      const now = Date.now();
+      const rec = rlStore.get(key);
+      if (!rec || now > rec.resetAt) {
+        rlStore.set(key, { count: 1, resetAt: now + windowMs });
+        return next();
+      }
+      rec.count++;
+      if (rec.count > maxRequests) {
+        res.setHeader('Retry-After', Math.ceil((rec.resetAt - now) / 1000));
+        return res.status(429).json({ error: 'Muitas tentativas. Aguarde antes de tentar novamente.' });
+      }
+      next();
+    };
+  }
+  // Clean up expired entries every 5 minutes
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, rec] of rlStore) {
+      if (now > rec.resetAt) rlStore.delete(key);
+    }
+  }, 5 * 60 * 1000);
+
+  // ── Helper: HTML-encode user-supplied content for email templates ─────────
+  const htmlEncode = (str: string) =>
+    String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+
+  app.use(express.json({ limit: '10mb' }));   // reduced from 50mb — prevents large payload attacks
+  app.use(express.urlencoded({ limit: '5mb', extended: true }));
   app.use(cookieParser());
 
   // Auth Middleware
@@ -115,7 +187,7 @@ async function startServer() {
   };
 
   // Auth Routes
-  app.post("/api/login", async (req, res) => {
+  app.post("/api/login", rateLimiter(10, 15 * 60 * 1000), async (req, res) => {
     const { email, password } = req.body;
     const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as any;
 
@@ -190,7 +262,7 @@ async function startServer() {
   });
 
   // Public Registration Route for Technicians
-  app.post("/api/register", async (req, res) => {
+  app.post("/api/register", rateLimiter(5, 60 * 60 * 1000), async (req, res) => {
     const { name, phone, email, password } = req.body;
 
     if (!email || !password || !name) {
@@ -308,12 +380,12 @@ async function startServer() {
     }
   });
 
-  app.get("/api/users/status", (req: any, res) => {
+  app.get("/api/users/status", rateLimiter(20, 60 * 1000), (req: any, res) => {
     const { email } = req.query;
     if (!email) return res.status(400).json({ error: "E-mail obrigatório" });
     const user = db.prepare("SELECT status FROM users WHERE email = ?").get(email) as any;
-    if (!user) return res.json({ status: 'not_found' });
-    res.json({ status: user.status });
+    // Return 'pending' for unknown emails to prevent user enumeration
+    res.json({ status: user?.status ?? 'pending' });
   });
 
   app.post("/api/register-technician", async (req: any, res) => {
@@ -826,11 +898,29 @@ async function startServer() {
   app.get("/api/proxy-image", authenticate, async (req, res) => {
     const imageUrl = req.query.url as string;
     if (!imageUrl) return res.status(400).send("No URL");
+
+    // SSRF protection: only allow images from trusted external domains
+    const ALLOWED_IMAGE_HOSTS = [
+      'i.ibb.co', 'image.ibb.co',
+      'drive.google.com', 'lh3.googleusercontent.com',
+      'storage.googleapis.com',
+    ];
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(imageUrl);
+    } catch {
+      return res.status(400).send("Invalid URL");
+    }
+    if (!ALLOWED_IMAGE_HOSTS.includes(parsedUrl.hostname)) {
+      return res.status(403).send("Image host not allowed");
+    }
+
     try {
       const resp = await fetch(imageUrl);
+      const contentType = resp.headers.get('content-type') || '';
+      if (!contentType.startsWith('image/')) return res.status(400).send("Not an image");
       const arrayBuffer = await resp.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      const contentType = resp.headers.get('content-type') || 'image/jpeg';
       const base64 = `data:${contentType};base64,${buffer.toString('base64')}`;
       res.send(base64);
     } catch (error) {
@@ -865,23 +955,24 @@ async function startServer() {
   });
 
   // Notify Admin on New Technician Access Request
-  app.post("/api/request-account", async (req, res) => {
+  app.post("/api/request-account", rateLimiter(3, 60 * 60 * 1000), async (req, res) => {
     const { email, name, phone } = req.body;
     try {
       await transporter.sendMail({
         from: process.env.EMAIL_FROM || '"D&E Hood Cleaning" <noreply@dehood.com>',
         to: 'dehoodcleaning@gmail.com',
         subject: 'Solicitação de Acesso - D&E Hood Cleaning',
+        // htmlEncode prevents XSS via user-supplied content in HTML email
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h2 style="color: #10b981;">Nova Solicitação de Acesso</h2>
             <p>Um técnico solicitou acesso ao sistema. Verifique os dados abaixo e crie a conta no painel se aprovado.</p>
             <ul style="line-height: 1.5;">
-              <li><strong>Nome:</strong> ${name || 'Não informado'}</li>
-              <li><strong>E-mail:</strong> ${email}</li>
-              <li><strong>Telefone:</strong> ${phone || 'Não informado'}</li>
+              <li><strong>Nome:</strong> ${htmlEncode(name || 'Não informado')}</li>
+              <li><strong>E-mail:</strong> ${htmlEncode(email)}</li>
+              <li><strong>Telefone:</strong> ${htmlEncode(phone || 'Não informado')}</li>
             </ul>
-            <p>Acesse o painel administratvo na aba "Equipe" para criar o acesso dele e gerar uma senha.</p>
+            <p>Acesse o painel administrativo na aba "Equipe" para criar o acesso dele e gerar uma senha.</p>
           </div>
         `
       });
@@ -974,7 +1065,7 @@ async function startServer() {
   // estiverem configuradas ainda.
 
   // POST /api/ai/chat  → envia uma conversa e retorna a resposta do LLM
-  app.post("/api/ai/chat", authenticate, async (req: any, res) => {
+  app.post("/api/ai/chat", authenticate, rateLimiter(30, 60 * 1000), async (req: any, res) => {
     try {
       const { route } = await import('./server/llm/router.ts');
       const { messages, taskType, maxTokens, temperature, forceProvider } = req.body;
