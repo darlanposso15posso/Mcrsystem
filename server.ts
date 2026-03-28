@@ -205,7 +205,7 @@ async function startServer() {
     res.json({ id: user.id, email: user.email, name: user.name, role: user.role });
   });
 
-  app.post("/api/logout", (req, res) => {
+  app.post("/api/logout", (_req, res) => {
     res.clearCookie("userId", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -268,10 +268,16 @@ async function startServer() {
     if (!email || !password || !name) {
       return res.status(400).json({ error: "Nome, e-mail e senha são obrigatórios" });
     }
+    if (typeof password !== 'string' || password.length < 8) {
+      return res.status(400).json({ error: "A senha deve ter pelo menos 8 caracteres" });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "E-mail inválido" });
+    }
 
     try {
       // Tenta criar no Supabase silenciosamente
-      const { data: supaData, error: supaError } = await supabaseAdmin.auth.signUp({
+      const { data: supaData } = await supabaseAdmin.auth.signUp({
         email,
         password,
         options: {
@@ -321,7 +327,7 @@ async function startServer() {
 
     try {
       // Cria primeiro no Supabase
-      const { data: supaData, error: supaError } = await supabaseAdmin.auth.signUp({
+      const { data: supaData } = await supabaseAdmin.auth.signUp({
         email,
         password,
         options: {
@@ -462,7 +468,7 @@ async function startServer() {
   });
 
   // Protected API Routes
-  app.get("/api/clients", authenticate, (req, res) => {
+  app.get("/api/clients", authenticate, rateLimiter(60, 60 * 1000), (_req, res) => {
     const clients = db.prepare(`
       SELECT c.*, 
       COALESCE(c.lastServiceDate, (SELECT MAX(serviceDate) FROM services WHERE clientId = c.id)) as lastServiceDate,
@@ -571,7 +577,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/services", authenticate, (req, res) => {
+  app.get("/api/services", authenticate, rateLimiter(60, 60 * 1000), (_req, res) => {
     const services = db.prepare(`
       SELECT 
         s.id, s.clientId, s.volume, s.systemType, s.conditionBefore, s.servicesPerformed,
@@ -732,7 +738,7 @@ async function startServer() {
     res.json(servicePhotos);
   });
 
-  app.get("/api/settings", authenticate, (req, res) => {
+  app.get("/api/settings", authenticate, (_req, res) => {
     const settings = db.prepare("SELECT key, value FROM settings").all();
     const settingsMap = settings.reduce((acc: any, s: any) => {
       acc[s.key] = s.value;
@@ -741,7 +747,7 @@ async function startServer() {
     res.json(settingsMap);
   });
 
-  app.get("/api/settings/public", (req, res) => {
+  app.get("/api/settings/public", (_req, res) => {
     const setting = db.prepare("SELECT value FROM settings WHERE key = 'logo_image'").get() as any;
     res.json({ logo_image: setting ? setting.value : null });
   });
@@ -764,7 +770,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/stats", authenticate, (req, res) => {
+  app.get("/api/stats", authenticate, rateLimiter(30, 60 * 1000), (_req, res) => {
     const activeClients = db.prepare("SELECT COUNT(*) as count FROM clients").get() as any;
     const servicesThisMonth = db.prepare("SELECT COUNT(*) as count FROM services WHERE strftime('%m', serviceDate) = strftime('%m', 'now')").get() as any;
     const completedServicesTotal = db.prepare("SELECT COUNT(*) as count FROM services WHERE status = 'COMPLETED'").get() as any;
@@ -833,7 +839,7 @@ async function startServer() {
     });
   });
 
-  app.get("/api/alerts", authenticate, (req, res) => {
+  app.get("/api/alerts", authenticate, (_req, res) => {
     // Read the configured reminder days, default to 14
     const settingRow = db.prepare("SELECT value FROM settings WHERE key = 'reminder_days_before'").get() as any;
     const reminderDays = settingRow ? parseInt(settingRow.value, 10) : 14;
@@ -871,7 +877,7 @@ async function startServer() {
 
   app.patch("/api/services/:id/cancel", authenticate, (req: any, res) => {
     const { id } = req.params;
-    const { clientId, restaurantName } = req.body;
+    const { restaurantName } = req.body;
     try {
       db.prepare("UPDATE services SET status = 'CANCELLED' WHERE id = ? AND technicianName = ?").run(id, req.user.name);
       db.prepare("INSERT INTO notifications (message) VALUES (?)").run(`O técnico ${req.user.name} cancelou o serviço iniciado por engano em ${restaurantName || 'um cliente'}.`);
@@ -938,7 +944,7 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     app.use(express.static(path.join(__dirname, "dist")));
-    app.get("*", (req, res) => {
+    app.get("*", (_req, res) => {
       res.sendFile(path.join(__dirname, "dist", "index.html"));
     });
   }
@@ -1014,9 +1020,9 @@ async function startServer() {
               subject: 'Agendamento de Limpeza - D&E Hood Cleaning',
               html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                  <h2 style="color: #10b981;">Olá, ${client.name}!</h2>
+                  <h2 style="color: #10b981;">Olá, ${htmlEncode(client.name)}!</h2>
                   <p>Esperamos que esteja tudo bem.</p>
-                  <p>Estamos entrando em contato para informar que sua próxima limpeza de coifa está prevista para daqui a <strong>${reminderDays} dias (${new Date(client.next_service_date).toLocaleDateString()})</strong>.</p>
+                  <p>Estamos entrando em contato para informar que sua próxima limpeza de coifa está prevista para daqui a <strong>${Number(reminderDays)} dias (${htmlEncode(new Date(client.next_service_date).toLocaleDateString())})</strong>.</p>
                   <p>Gostaríamos de confirmar se este horário ainda é conveniente para você ou se precisamos reagendar.</p>
                   <div style="margin: 30px 0;">
                     <a href="tel:${process.env.SUPPORT_PHONE || '123456789'}" style="background: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Confirmar Agendamento</a>
