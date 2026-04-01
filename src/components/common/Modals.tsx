@@ -137,21 +137,15 @@ const Modals: React.FC<ModalsProps> = (props) => {
                                 <h4 className="text-[10px] font-black uppercase text-blue-600 tracking-widest border-b border-blue-600/10 pb-1">Dados Operacionais</h4>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Nome Fantasia</label>
-                                    <input placeholder="..." value={client.name} onChange={e => setClient({ ...client, name: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 focus:bg-[var(--card-alt-color)]/80 transition-all uppercase font-black" />
+                                    <input placeholder="..." value={client.name} onChange={e => setClient({ ...client, name: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 focus:bg-[var(--card-alt-color)]/80 transition-all uppercase font-black" />
                                 </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">DBA</label>
-                                        <input placeholder="..." value={client.dba || ''} onChange={e => setClient({ ...client, dba: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Estado</label>
-                                        <input placeholder="Ex: FL" value={client.state || ''} onChange={e => setClient({ ...client, state: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black" />
-                                    </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">DBA</label>
+                                    <input placeholder="..." value={client.dba || ''} onChange={e => setClient({ ...client, dba: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black" />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Tipo de Estabelecimento</label>
-                                    <select value={client.establishmentType || ''} onChange={e => setClient({ ...client, establishmentType: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black">
+                                    <select value={client.establishmentType || ''} onChange={e => setClient({ ...client, establishmentType: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black">
                                         <option value="" disabled className="bg-[var(--card-color)]">Selecione...</option>
                                         <option value="Restaurante" className="bg-[var(--card-color)]">Restaurante Tradicional</option>
                                         <option value="Pizzaria" className="bg-[var(--card-color)]">Pizzaria</option>
@@ -165,38 +159,46 @@ const Modals: React.FC<ModalsProps> = (props) => {
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Endereço</label>
-                                    <input placeholder="..." value={client.address} onChange={e => setClient({ ...client, address: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black" />
+                                    <input placeholder="123 Main St" value={client.address} onChange={e => setClient({ ...client, address: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black" />
                                 </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-1">
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="space-y-1 col-span-1">
                                         <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Cidade</label>
-                                        <input placeholder="..." value={client.city || ''} onChange={e => setClient({ ...client, city: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black" />
+                                        <input placeholder="Miami" value={client.city || ''} onChange={e => setClient({ ...client, city: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black" />
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Frequência</label>
-                                        <select value={client.recurrence} onChange={e => setClient({ ...client, recurrence: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black">
-                                            <option value={Recurrence.MONTHLY} className="bg-[var(--card-color)]">Mensal</option>
-                                            <option value={Recurrence.QUARTERLY} className="bg-[var(--card-color)]">Trimestral</option>
-                                            <option value={Recurrence.SEMI_ANNUAL} className="bg-[var(--card-color)]">Semestral</option>
-                                            <option value={Recurrence.ANNUAL} className="bg-[var(--card-color)]">Anual</option>
-                                        </select>
+                                    <div className="space-y-1 col-span-1">
+                                        <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Estado</label>
+                                        <input placeholder="FL" value={client.state || ''} onChange={e => setClient({ ...client, state: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black" />
                                     </div>
+                                    <div className="space-y-1 col-span-1">
+                                        <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">ZIP Code</label>
+                                        <input placeholder="33101" value={client.zip || ''} onChange={e => setClient({ ...client, zip: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black" />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Frequência</label>
+                                    <select value={client.recurrence} onChange={e => setClient({ ...client, recurrence: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black">
+                                        <option value={Recurrence.MONTHLY} className="bg-[var(--card-color)]">Mensal</option>
+                                        <option value={Recurrence.QUARTERLY} className="bg-[var(--card-color)]">Trimestral</option>
+                                        <option value={Recurrence.SEMI_ANNUAL} className="bg-[var(--card-color)]">Semestral</option>
+                                        <option value={Recurrence.ANNUAL} className="bg-[var(--card-color)]">Anual</option>
+                                    </select>
                                 </div>
                             </div>
                             <div className="space-y-6">
                                 <h4 className="text-[10px] font-black uppercase text-blue-600 tracking-widest border-b border-blue-600/10 pb-1">Equipamentos & Faturamento</h4>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Responsável</label>
-                                    <input placeholder="..." value={client.managerName} onChange={e => setClient({ ...client, managerName: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black" />
+                                    <input placeholder="..." value={client.managerName} onChange={e => setClient({ ...client, managerName: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Telefone</label>
-                                        <input placeholder="..." value={client.phone} onChange={e => setClient({ ...client, phone: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black" />
+                                        <input placeholder="..." value={client.phone} onChange={e => setClient({ ...client, phone: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black" />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">E-mail</label>
-                                        <input placeholder="..." value={client.email} onChange={e => setClient({ ...client, email: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white text-sm focus:ring-1 focus:ring-blue-600 font-black" />
+                                        <input placeholder="..." value={client.email} onChange={e => setClient({ ...client, email: e.target.value })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] text-sm focus:ring-1 focus:ring-blue-600 font-black" />
                                     </div>
                                 </div>
                                 {user?.role === 'admin' && (
@@ -208,11 +210,11 @@ const Modals: React.FC<ModalsProps> = (props) => {
                                 <div className="grid grid-cols-3 gap-6">
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Hoods</label>
-                                        <input type="number" value={client.hoodCount} onChange={e => setClient({ ...client, hoodCount: parseInt(e.target.value) })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white font-black" />
+                                        <input type="number" value={client.hoodCount} onChange={e => setClient({ ...client, hoodCount: parseInt(e.target.value) })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] font-black" />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Filtros</label>
-                                        <input type="number" value={client.filterCount} onChange={e => setClient({ ...client, filterCount: parseInt(e.target.value) })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white font-black" />
+                                        <input type="number" value={client.filterCount} onChange={e => setClient({ ...client, filterCount: parseInt(e.target.value) })} className="w-full p-3 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] font-black" />
                                     </div>
                                     <div className="flex flex-col justify-end pb-1">
                                         <label className="flex items-center gap-3 cursor-pointer group">
