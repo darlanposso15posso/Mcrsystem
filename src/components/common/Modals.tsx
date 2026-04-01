@@ -68,13 +68,13 @@ const Modals: React.FC<ModalsProps> = (props) => {
         return (
             <div className="fixed inset-0 bg-[#0A0A0B]/90 backdrop-blur-md flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto">
                 <div className="bg-[var(--card-color)] rounded-none w-full max-w-2xl my-auto overflow-hidden shadow-2xl border border-[var(--border-muted)] blue-glow">
-                    <div className="p-8 bg-[var(--bg-color)] text-white flex justify-between items-center border-b border-[var(--border-muted)]">
+                    <div className="p-8 bg-[var(--bg-color)] text-[var(--text-primary)] flex justify-between items-center border-b border-[var(--border-muted)]">
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 bg-blue-600 text-[var(--bg-color)] rounded-none flex items-center justify-center text-3xl font-black blue-glow">
                                 {selectedClient.name[0]}
                             </div>
                             <div>
-                                <h3 className="font-black text-2xl tracking-tight text-white uppercase italic">{selectedClient.name}</h3>
+                                <h3 className="font-black text-2xl tracking-tight text-[var(--text-primary)] uppercase italic">{selectedClient.name}</h3>
                                 <p className="text-blue-600 text-[10px] font-black uppercase tracking-widest italic">{selectedClient.establishmentType || 'Restaurante'}</p>
                             </div>
                         </div>
@@ -85,8 +85,8 @@ const Modals: React.FC<ModalsProps> = (props) => {
                             <div>
                                 <h4 className="text-[10px] font-black uppercase text-[var(--text-faint)] mb-3 tracking-widest border-b border-[var(--border-muted)] pb-1">Identificação</h4>
                                 <div className="space-y-4">
-                                    <div className="flex justify-between text-xs"><span className="text-[var(--text-muted)] font-bold uppercase tracking-widest">DBA:</span> <span className="font-black text-white">{selectedClient.dba || 'N/A'}</span></div>
-                                    <div className="flex justify-between text-xs"><span className="text-[var(--text-muted)] font-bold uppercase tracking-widest">Razão Social:</span> <span className="font-black text-white">{selectedClient.legalName || 'N/A'}</span></div>
+                                    <div className="flex justify-between text-xs"><span className="text-[var(--text-muted)] font-bold uppercase tracking-widest">DBA:</span> <span className="font-black text-[var(--text-primary)]">{selectedClient.dba || 'N/A'}</span></div>
+                                    <div className="flex justify-between text-xs"><span className="text-[var(--text-muted)] font-bold uppercase tracking-widest">Razão Social:</span> <span className="font-black text-[var(--text-primary)]">{selectedClient.legalName || 'N/A'}</span></div>
                                     {user?.role === 'admin' && (
                                         <div className="flex justify-between text-xs"><span className="text-[var(--text-muted)] font-bold uppercase tracking-widest">Valor:</span> <span className="font-black text-blue-600">${selectedClient.cleaningPrice || 0}</span></div>
                                     )}
@@ -94,7 +94,7 @@ const Modals: React.FC<ModalsProps> = (props) => {
                             </div>
                             <div>
                                 <h4 className="text-[10px] font-black uppercase text-[var(--text-faint)] mb-3 tracking-widest border-b border-[var(--border-muted)] pb-1">Localização</h4>
-                                <div className="text-sm font-black text-white uppercase tracking-tight">{selectedClient.address}</div>
+                                <div className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{selectedClient.address}</div>
                                 <div className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-widest">{selectedClient.city}, {selectedClient.state} {selectedClient.zip}</div>
                             </div>
                         </div>
@@ -102,7 +102,7 @@ const Modals: React.FC<ModalsProps> = (props) => {
                             <div>
                                 <h4 className="text-[10px] font-black uppercase text-[var(--text-faint)] mb-3 tracking-widest border-b border-[var(--border-muted)] pb-1">Contato</h4>
                                 <div className="bg-blue-600/5 p-5 rounded-none border border-blue-600/20 shadow-inner">
-                                    <div className="font-black text-white uppercase tracking-tight text-sm">{selectedClient.managerName}</div>
+                                    <div className="font-black text-[var(--text-primary)] uppercase tracking-tight text-sm">{selectedClient.managerName}</div>
                                     <a href={`tel:${selectedClient.phone}`} className="text-blue-600 mt-2 block hover:text-blue-500 transition-colors font-black text-sm tracking-widest">
                                         {selectedClient.phone}
                                     </a>
@@ -128,7 +128,7 @@ const Modals: React.FC<ModalsProps> = (props) => {
             <div className="fixed inset-0 bg-[#0A0A0B]/95 backdrop-blur-xl flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto">
                 <div className="bg-[var(--card-color)] rounded-none w-full max-w-4xl my-auto overflow-hidden shadow-2xl border border-[var(--border-muted)]">
                     <form onSubmit={handleSave}>
-                        <div className="p-8 bg-[var(--bg-color)] text-white flex justify-between items-center border-b border-[var(--border-muted)]">
+                        <div className="p-8 bg-[var(--bg-color)] text-[var(--text-primary)] flex justify-between items-center border-b border-[var(--border-muted)]">
                             <h3 className="font-black text-2xl tracking-tight uppercase italic">{showEditClientModal ? 'Editar Registro' : 'Novo Registro'}</h3>
                             <button type="button" onClick={() => showEditClientModal ? setShowEditClientModal(false) : setShowClientModal(false)} className="p-2 hover:bg-[var(--card-alt-color)]/80 rounded-none transition-colors border border-[var(--border-muted)] text-[var(--text-muted)]"><X size={24} /></button>
                         </div>
@@ -249,34 +249,34 @@ const Modals: React.FC<ModalsProps> = (props) => {
             <div className="fixed inset-0 bg-[#0A0A0B]/95 backdrop-blur-xl flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto">
                 <div className="bg-[var(--card-color)] rounded-none w-full max-w-lg my-auto overflow-hidden shadow-2xl border border-[var(--border-muted)]">
                     <form onSubmit={handleSave}>
-                        <div className="p-8 bg-[var(--bg-color)] text-white flex justify-between items-center border-b border-[var(--border-muted)]">
+                        <div className="p-8 bg-[var(--bg-color)] text-[var(--text-primary)] flex justify-between items-center border-b border-[var(--border-muted)]">
                             <h3 className="font-black text-2xl tracking-tight uppercase italic">{showEditUserModal ? 'Configurar Membro' : 'Novo Membro'}</h3>
                             <button type="button" onClick={() => showEditUserModal ? setShowEditUserModal(false) : setShowUserModal(false)} className="p-2 hover:bg-[var(--card-alt-color)]/80 rounded-none transition-colors border border-[var(--border-muted)] text-[var(--text-muted)]"><X size={24} /></button>
                         </div>
                         <div className="p-8 space-y-6">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Nome Completo</label>
-                                <input placeholder="..." value={targetUser.name} onChange={e => setUser({ ...targetUser, name: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white focus:ring-1 focus:ring-blue-600 font-black uppercase text-sm" required />
+                                <input placeholder="..." value={targetUser.name} onChange={e => setUser({ ...targetUser, name: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] focus:ring-1 focus:ring-blue-600 font-black uppercase text-sm" required />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">E-mail de Acesso</label>
-                                <input placeholder="..." type="email" value={targetUser.email} onChange={e => setUser({ ...targetUser, email: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white focus:ring-1 focus:ring-blue-600 font-black text-sm" required />
+                                <input placeholder="..." type="email" value={targetUser.email} onChange={e => setUser({ ...targetUser, email: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] focus:ring-1 focus:ring-blue-600 font-black text-sm" required />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Senha Temporária</label>
-                                <input placeholder={showEditUserModal ? "Manter atual..." : "Definir..."} type="password" value={targetUser.password || ''} onChange={e => setUser({ ...targetUser, password: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white focus:ring-1 focus:ring-blue-600 font-black text-sm" required={!showEditUserModal} />
+                                <input placeholder={showEditUserModal ? "Manter atual..." : "Definir..."} type="password" value={targetUser.password || ''} onChange={e => setUser({ ...targetUser, password: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] focus:ring-1 focus:ring-blue-600 font-black text-sm" required={!showEditUserModal} />
                             </div>
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Cargo</label>
-                                    <select value={targetUser.role} onChange={e => setUser({ ...targetUser, role: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white focus:ring-1 focus:ring-blue-600 font-black text-sm uppercase">
+                                    <select value={targetUser.role} onChange={e => setUser({ ...targetUser, role: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] focus:ring-1 focus:ring-blue-600 font-black text-sm uppercase">
                                         <option value="technician" className="bg-[var(--card-color)]">Técnico</option>
                                         <option value="admin" className="bg-[var(--card-color)]">Administrador</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-[var(--text-faint)] uppercase tracking-widest">Nível de Expertise</label>
-                                    <select value={targetUser.knowledgeLevel || 'Aprendiz'} onChange={e => setUser({ ...targetUser, knowledgeLevel: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-white focus:ring-1 focus:ring-blue-600 font-black text-sm uppercase">
+                                    <select value={targetUser.knowledgeLevel || 'Aprendiz'} onChange={e => setUser({ ...targetUser, knowledgeLevel: e.target.value })} className="w-full p-4 bg-[var(--card-alt-color)] rounded-none border border-[var(--border-muted)] text-[var(--text-primary)] focus:ring-1 focus:ring-blue-600 font-black text-sm uppercase">
                                         <option value="Aprendiz" className="bg-[var(--card-color)]">Aprendiz</option>
                                         <option value="Pleno" className="bg-[var(--card-color)]">Pleno</option>
                                         <option value="Sênior" className="bg-[var(--card-color)]">Sênior</option>
@@ -303,7 +303,7 @@ const Modals: React.FC<ModalsProps> = (props) => {
             <div className="fixed inset-0 bg-[#0A0A0B]/95 backdrop-blur-xl flex items-center justify-center z-50 p-4">
                 <div className="bg-[var(--card-color)] rounded-none w-full max-w-2xl overflow-hidden shadow-2xl border border-[var(--border-muted)]">
                     <form onSubmit={handleStartService}>
-                        <div className="p-8 bg-[var(--bg-color)] text-white flex justify-between items-center border-b border-[var(--border-muted)]">
+                        <div className="p-8 bg-[var(--bg-color)] text-[var(--text-primary)] flex justify-between items-center border-b border-[var(--border-muted)]">
                             <h3 className="font-black text-2xl tracking-tight uppercase italic">Protocolo de Início</h3>
                             <button type="button" onClick={() => setShowServiceModal(false)} className="p-2 hover:bg-[var(--card-alt-color)]/80 rounded-none transition-colors border border-[var(--border-muted)] text-[var(--text-muted)]"><X size={24} /></button>
                         </div>
