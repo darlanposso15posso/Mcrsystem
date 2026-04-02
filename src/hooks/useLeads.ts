@@ -62,6 +62,7 @@ export const useLeads = ({ showToast, confirmAction, companyId }: UseLeadsProps)
                 .from('leads')
                 .update(payload)
                 .eq('id', id)
+                .eq('company_id', companyId)
                 .select()
                 .single();
 

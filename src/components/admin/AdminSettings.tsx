@@ -252,7 +252,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
         <div className="space-y-8 max-w-6xl mx-auto">
             <div className="flex justify-between items-center bg-[var(--card-color)] p-8 rounded-none border border-[var(--border-muted)] shadow-2xl blue-glow border-l-4 border-l-blue-600">
                 <div>
-                    <h2 className="text-3xl font-black tracking-tight text-white uppercase italic">{t.admin_settings}</h2>
+                    <h2 className="text-3xl font-black tracking-tight text-[var(--text-primary)] uppercase italic">{t.admin_settings}</h2>
                     <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest mt-1">Central de Comando e Governança Global</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -293,7 +293,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                     <Globe size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-white uppercase italic tracking-tight text-lg">{t.language}</h3>
+                                    <h3 className="font-black text-[var(--text-primary)] uppercase italic tracking-tight text-lg">{t.language}</h3>
                                     <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Selecione o idioma operacional do sistema</p>
                                 </div>
                             </div>
@@ -332,7 +332,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                         <Briefcase size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-white uppercase italic tracking-tight text-lg">Gestão de Equipe</h3>
+                                        <h3 className="font-black text-[var(--text-primary)] uppercase italic tracking-tight text-lg">Gestão de Equipe</h3>
                                         <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Controle seus técnicos e acessos</p>
                                     </div>
                                 </div>
@@ -364,7 +364,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                                             {member.name?.charAt(0).toUpperCase()}
                                                         </div>
                                                         <div>
-                                                            <h4 className="text-xs font-black text-white uppercase italic">{member.name}</h4>
+                                                            <h4 className="text-xs font-black text-[var(--text-primary)] uppercase italic">{member.name}</h4>
                                                             <p className="text-[9px] text-[var(--text-muted)] font-bold tracking-widest uppercase">{member.email}</p>
                                                         </div>
                                                     </div>
@@ -401,7 +401,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                         <Zap size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-white uppercase italic tracking-tight text-lg">Theme Presets</h3>
+                                        <h3 className="font-black text-[var(--text-primary)] uppercase italic tracking-tight text-lg">Theme Presets</h3>
                                         <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Combinações prontas — aplica em um clique</p>
                                     </div>
                                 </div>
@@ -440,7 +440,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                         <Palette size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-white uppercase italic tracking-tight text-lg">Fine-Tuning</h3>
+                                        <h3 className="font-black text-[var(--text-primary)] uppercase italic tracking-tight text-lg">Fine-Tuning</h3>
                                         <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Ajuste manual — salva ao soltar o mouse ou ao sair do campo</p>
                                     </div>
                                 </div>
@@ -537,7 +537,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                     <Layers size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-white uppercase italic tracking-tight text-lg">Segment Engine</h3>
+                                    <h3 className="font-black text-[var(--text-primary)] uppercase italic tracking-tight text-lg">Segment Engine</h3>
                                     <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Adapte o sistema para diferentes indústrias</p>
                                 </div>
                             </div>
@@ -578,7 +578,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                     <Layout size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-white uppercase italic tracking-tight text-lg">{t.general}</h3>
+                                    <h3 className="font-black text-[var(--text-primary)] uppercase italic tracking-tight text-lg">{t.general}</h3>
                                     <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Identidade Visual e Parâmetros Base</p>
                                 </div>
                             </div>
@@ -609,14 +609,14 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                     <Briefcase size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-white uppercase italic tracking-tight text-lg">{t.business_rules}</h3>
+                                    <h3 className="font-black text-[var(--text-primary)] uppercase italic tracking-tight text-lg">{t.business_rules}</h3>
                                     <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Logística de Ciclo e Notificações</p>
                                 </div>
                             </div>
 
                             <div className="p-8 bg-purple-500/5 border border-purple-500/10 rounded-none text-center">
                                 <Zap size={40} className="text-purple-500 mx-auto mb-4 opacity-20" />
-                                <h4 className="text-sm font-black text-white uppercase italic mb-2 tracking-widest">Console de Automação Ativo</h4>
+                                <h4 className="text-sm font-black text-[var(--text-primary)] uppercase italic mb-2 tracking-widest">Console de Automação Ativo</h4>
                                 <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest max-w-md mx-auto leading-relaxed">
                                     As regras de disparo (19 dias) e checklists pré-limpeza estão sendo gerenciadas pelo Smart Engine no menu lateral de Automação.
                                 </p>
@@ -631,7 +631,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                     <Shield size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-white uppercase italic tracking-tight text-lg">{t.security}</h3>
+                                    <h3 className="font-black text-[var(--text-primary)] uppercase italic tracking-tight text-lg">{t.security}</h3>
                                     <p className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest">Criptografia e Integridade de Dados</p>
                                 </div>
                             </div>
@@ -640,7 +640,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                 <div className="flex items-center justify-between p-6 bg-[var(--bg-color)] border border-[var(--border-muted)] rounded-none">
                                     <div className="flex items-center gap-4">
                                         <Database size={20} className="text-amber-500" />
-                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Auto-Backup Snapshot</span>
+                                        <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Auto-Backup Snapshot</span>
                                     </div>
                                     <button className="px-6 py-2 bg-amber-500 text-[var(--bg-color)] text-[10px] font-black rounded-none border border-amber-400 uppercase tracking-widest hover:bg-amber-400 transition-all">
                                         Run Now
@@ -649,7 +649,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
                                 <div className="flex items-center justify-between p-6 bg-[var(--bg-color)] border border-[var(--border-muted)] rounded-none opacity-50 cursor-not-allowed">
                                     <div className="flex items-center gap-4">
                                         <Key size={20} className="text-[var(--text-faint)]" />
-                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Master API Key Rotation</span>
+                                        <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Master API Key Rotation</span>
                                     </div>
                                     <div className="px-4 py-1 bg-[var(--card-alt-color)] text-[var(--text-faint)] text-[9px] font-black rounded-none border border-[var(--border-color)] uppercase tracking-widest">Locked</div>
                                 </div>

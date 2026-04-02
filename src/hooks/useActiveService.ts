@@ -25,6 +25,7 @@ interface UseActiveServiceOptions {
     onServiceCompleted?: (updatedService: ServiceRecord, updatedClient?: Client) => void;
     onServiceCancelled?: (serviceId: string | number) => void;
     clients: Client[];
+    companyId: string;
 }
 
 export function useActiveService({
@@ -33,6 +34,7 @@ export function useActiveService({
     onServiceCompleted,
     onServiceCancelled,
     clients,
+    companyId,
 }: UseActiveServiceOptions) {
     const [activeService, setActiveService] = useState<ServiceRecord | null>(null);
     const [preCleaningChecklistData, setPreCleaningChecklistData] = useState<Record<string, boolean>>({});
@@ -89,7 +91,7 @@ export function useActiveService({
     const persistProgress = useCallback((serviceId: string | number, patch: Record<string, unknown>) => {
         if (saveTimer.current) clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(async () => {
-            const { error } = await supabase.from('services').update(patch).eq('id', serviceId);
+            const { error } = await supabase.from('services').update(patch).eq('id', serviceId).eq('company_id', companyId);
             if (error) console.error('[useActiveService] Auto-save failed:', error);
         }, 1500); // 1.5s debounce
     }, []);
@@ -182,7 +184,7 @@ export function useActiveService({
         confirmAction(
             'Certeza que deseja cancelar este serviço? O administrador será notificado.',
             async () => {
-                const { error } = await supabase.from('services').delete().eq('id', activeService.id);
+                const { error } = await supabase.from('services').delete().eq('id', activeService.id).eq('company_id', companyId);
                 if (!error) {
                     onServiceCancelled?.(activeService.id);
                     setActiveService(null);
@@ -233,9 +235,9 @@ export function useActiveService({
             }
 
             const [srvRes, cliRes] = await Promise.all([
-                supabase.from('services').update(payload).eq('id', activeService.id).select().single() as unknown as Promise<any>,
+                supabase.from('services').update(payload).eq('id', activeService.id).eq('company_id', companyId).select().single() as unknown as Promise<any>,
                 client
-                    ? supabase.from('clients').update({ last_service_date: today.toISOString(), next_service_date: nextDate.toISOString() }).eq('id', client.id).select().single() as unknown as Promise<any>
+                    ? supabase.from('clients').update({ last_service_date: today.toISOString(), next_service_date: nextDate.toISOString() }).eq('id', client.id).eq('company_id', companyId).select().single() as unknown as Promise<any>
                     : Promise.resolve({ data: null, error: null }),
             ]);
 

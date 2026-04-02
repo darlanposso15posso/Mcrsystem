@@ -118,6 +118,7 @@ function App() {
     showToast,
     confirmAction,
     clients,
+    companyId,
     onServiceCompleted: (completedService, updatedClient) => {
       setServices(prev => prev.map(s => s.id === completedService.id ? completedService : s));
       if (updatedClient) setClients(prev => prev.map(c => c.id === updatedClient.id ? updatedClient : c));
@@ -446,7 +447,7 @@ function App() {
         status: editingUser.status,
         address: editingUser.address,
         knowledge_level: editingUser.knowledgeLevel,
-      }).eq('id', editingUser.id).select().single();
+      }).eq('id', editingUser.id).eq('company_id', companyId).select().single();
 
       if (!error && data) {
         setUsers(prev => prev.map(u => u.id === editingUser.id ? mapProfile(data) : u));
@@ -614,7 +615,7 @@ function App() {
                 setCompletionPhotos={setCompletionPhotos}
                 preCleaningChecklistData={preCleaningChecklistData}
                 setPreCleaningChecklistData={updatePreCleaningChecklist}
-                users={clients}
+                users={users}
                 settings={settings}
                 segmentLabels={s}
                 showToast={showToast}

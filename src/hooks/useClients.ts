@@ -114,6 +114,7 @@ export function useClients({ showToast, confirmAction, userRole, companyId, onLi
             const { data, error: dbErr } = await supabase.from('clients')
                 .update(unmapClient({ ...editingClient, companyId: editingClient.companyId, lat, lng }))
                 .eq('id', editingClient.id)
+                .eq('company_id', editingClient.companyId)
                 .select().single();
 
             if (dbErr) {

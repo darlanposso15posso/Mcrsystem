@@ -39,7 +39,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                 const { error } = await supabase
                     .from('profiles')
                     .update({ status: 'active' })
-                    .eq('id', id);
+                    .eq('id', id)
+                    .eq('company_id', companyId);
 
                 if (!error) {
                     showToast("Técnico aprovado com sucesso!");
@@ -63,7 +64,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                 const { error } = await supabase
                     .from('profiles')
                     .delete()
-                    .eq('id', id);
+                    .eq('id', id)
+                    .eq('company_id', companyId);
 
                 if (!error) {
                     showToast("Técnico removido com sucesso!");
@@ -138,7 +140,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                             <tr key={u.id} className="hover:bg-black/[0.02] transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="font-bold">{u.name}</div>
-                                    <div className="text-xs text-black/40">{u.email}</div>
+                                    <div className="text-xs text-[var(--text-muted)]">{u.email}</div>
                                 </td>
                                 <td className="px-6 py-4">
                                     {u.role === 'technician' && (
@@ -156,9 +158,9 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                                             {u.phone}
                                         </a>
                                     ) : (
-                                        <div className="text-sm text-black/40">N/A</div>
+                                        <div className="text-sm text-[var(--text-muted)]">N/A</div>
                                     )}
-                                    <div className="text-[10px] text-black/40">{u.address || 'Sem endereço'}</div>
+                                    <div className="text-[10px] text-[var(--text-muted)]">{u.address || 'Sem endereço'}</div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${u.status === 'pending' ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'}`}>
@@ -195,7 +197,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                                         <button
                                             onClick={() => handleDelete(u.id, u.name)}
                                             disabled={isLoading}
-                                            className="p-2 hover:bg-red-50 rounded-lg text-black/40 hover:text-red-500 transition-colors"
+                                            className="p-2 hover:bg-red-50 rounded-lg text-[var(--text-muted)] hover:text-red-500 transition-colors"
                                             title="Remover"
                                         >
                                             <X size={18} />
