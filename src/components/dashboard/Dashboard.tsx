@@ -15,7 +15,8 @@ import {
     Settings,
     Eye,
     EyeOff,
-    PieChart
+    PieChart,
+    Plus
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import {
@@ -101,6 +102,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         nfpa_compliance: true
     });
     const [isCustomizing, setIsCustomizing] = useState(false);
+    const [extraCompletionPhotos, setExtraCompletionPhotos] = useState(0);
 
     // Load/Save Widget Preferences
     useEffect(() => {
@@ -497,15 +499,29 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </div>
 
                                 <div className="space-y-6">
-                                    <h3 className="font-black text-lg text-white uppercase tracking-widest border-b border-[var(--border-muted)] pb-4">Relatório Fotográfico</h3>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {[0, 1, 2, 3, 4, 5].map(i => (
-                                            <label key={i} className="aspect-square bg-[var(--card-alt-color)] rounded-none flex flex-col items-center justify-center border-2 border-dashed border-[var(--border-muted)] hover:border-blue-600 transition-colors cursor-pointer group relative overflow-hidden">
+                                    <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-4">
+                                        <h3 className="font-black text-lg text-white uppercase tracking-widest">Fotos Depois da Limpeza</h3>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExtraCompletionPhotos(extraCompletionPhotos + 1)}
+                                            className="flex items-center gap-1 px-3 py-2 bg-[var(--card-alt-color)] border border-[var(--border-muted)] hover:border-green-600 hover:text-green-600 text-[var(--text-muted)] transition-all text-[10px] font-black uppercase tracking-widest rounded-none"
+                                        >
+                                            <Plus size={12} /> Adicionar Foto
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {Array.from({ length: 6 + extraCompletionPhotos }, (_, i) => i).map(i => (
+                                            <label key={i} className="aspect-video bg-[var(--card-alt-color)] rounded-none flex flex-col items-center justify-center border-2 border-dashed border-[var(--border-muted)] hover:border-green-600 transition-colors cursor-pointer group relative overflow-hidden">
                                                 {completionPhotos && completionPhotos[i] ? (
-                                                    <img src={completionPhotos[i]} alt={`Foto ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                                                    <div className="absolute inset-0">
+                                                        <img src={completionPhotos[i]} alt={`Foto ${i + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <Camera className="text-white" size={28} />
+                                                        </div>
+                                                    </div>
                                                 ) : (
                                                     <>
-                                                        <Camera className="text-white/10 group-hover:text-blue-600 transition-colors" size={32} />
+                                                        <Camera className="text-[var(--text-faint)] group-hover:text-green-600 transition-colors" size={32} />
                                                         <span className="text-[9px] text-[var(--text-faint)] mt-2 uppercase font-black tracking-widest">Foto {i + 1}</span>
                                                     </>
                                                 )}
@@ -521,7 +537,6 @@ const Dashboard: React.FC<DashboardProps> = ({
                                                                 const compressedBase64 = await compressImage(file);
                                                                 const { uploadImage } = await import('../../utils/storageUtils');
                                                                 const publicUrl = await uploadImage(compressedBase64);
-
                                                                 const newPhotos = [...(completionPhotos || [])];
                                                                 newPhotos[i] = publicUrl;
                                                                 setCompletionPhotos(newPhotos);

@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Camera, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Camera, AlertTriangle, Plus } from 'lucide-react';
 import { Client, User, Recurrence } from '../../types';
 import { compressImage } from '../../utils/imageUtils';
 import { MANDATORY_PRE_CLEANING_CHECKLIST } from '../../utils/preCleaningChecklist';
@@ -45,6 +45,8 @@ interface ModalsProps {
 }
 
 const Modals: React.FC<ModalsProps> = (props) => {
+    const [extraPrePhotos, setExtraPrePhotos] = useState(0);
+
     const {
         showClientModal, setShowClientModal,
         showEditClientModal, setShowEditClientModal,
@@ -344,21 +346,30 @@ const Modals: React.FC<ModalsProps> = (props) => {
                             </div>
 
                             <div className="space-y-4">
-                                <h4 className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest border-b border-[var(--border-muted)] pb-1">Documentação Fotográfica Pre-Op</h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {["Hood Geral", "Set de Filtros", "Exaustores", "Sistema Dutos"].map((label, i) => (
-                                        <label key={i} className="aspect-square bg-[var(--card-alt-color)] rounded-none flex flex-col items-center justify-center border border-[var(--border-muted)] hover:border-blue-600/50 transition-all cursor-pointer group relative overflow-hidden">
+                                <div className="flex items-center justify-between border-b border-[var(--border-muted)] pb-1">
+                                    <h4 className="text-[10px] font-black uppercase text-[var(--text-faint)] tracking-widest">Fotos Antes da Limpeza</h4>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExtraPrePhotos(extraPrePhotos + 1)}
+                                        className="flex items-center gap-1 px-3 py-1 bg-[var(--card-alt-color)] border border-[var(--border-muted)] hover:border-green-600 hover:text-green-600 text-[var(--text-muted)] transition-all text-[10px] font-black uppercase tracking-widest"
+                                    >
+                                        <Plus size={12} /> Adicionar Foto
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {[...["Hood Geral", "Set de Filtros", "Exaustores", "Sistema Dutos"], ...Array.from({ length: extraPrePhotos }, (_, k) => `Extra ${k + 1}`)].map((label, i) => (
+                                        <label key={i} className="aspect-video bg-[var(--card-alt-color)] rounded-none flex flex-col items-center justify-center border-2 border-dashed border-[var(--border-muted)] hover:border-green-600 transition-all cursor-pointer group relative overflow-hidden">
                                             {inspectionPhotos && inspectionPhotos[i] ? (
-                                                <div className="absolute inset-0 group-hover:scale-110 transition-transform duration-500">
+                                                <div className="absolute inset-0">
                                                     <img src={inspectionPhotos[i]} alt={label} className="w-full h-full object-cover" />
-                                                    <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <Camera className="text-white" size={24} />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <Camera className="text-white" size={28} />
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <Camera className="text-white/10 group-hover:text-blue-600 transition-colors" size={24} />
-                                                    <span className="text-[8px] text-[var(--text-faint)] group-hover:text-blue-600 mt-2 uppercase font-black tracking-widest text-center px-2">{label}</span>
+                                                    <Camera className="text-[var(--text-faint)] group-hover:text-green-600 transition-colors" size={32} />
+                                                    <span className="text-[9px] text-[var(--text-faint)] group-hover:text-green-600 mt-2 uppercase font-black tracking-widest text-center px-2">{label}</span>
                                                 </>
                                             )}
                                             <input
@@ -373,7 +384,6 @@ const Modals: React.FC<ModalsProps> = (props) => {
                                                             const compressedBase64 = await compressImage(file);
                                                             const { uploadImage } = await import('../../utils/storageUtils');
                                                             const publicUrl = await uploadImage(compressedBase64);
-
                                                             const newPhotos = [...(inspectionPhotos || [])];
                                                             newPhotos[i] = publicUrl;
                                                             setInspectionPhotos(newPhotos);
@@ -386,6 +396,7 @@ const Modals: React.FC<ModalsProps> = (props) => {
                                         </label>
                                     ))}
                                 </div>
+                                <p className="text-[9px] text-[var(--text-faint)] uppercase tracking-widest">Toque em cada slot para abrir a camera do celular</p>
                             </div>
                         </div>
                         <div className="p-8 bg-[var(--card-alt-color)] border-t border-[var(--border-muted)]">
