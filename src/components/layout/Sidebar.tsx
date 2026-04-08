@@ -5,12 +5,10 @@ import {
     ClipboardList,
     BarChart3,
     Shield,
-    Code,
     FileText,
     LogOut,
     CalendarDays,
     Settings,
-    MessageSquare,
     Zap,
     BookOpen,
     Phone,
@@ -31,6 +29,14 @@ interface SidebarProps {
     segmentLabels?: SegmentLabels;
 }
 
+function SidebarGroupLabel({ children }: { children: React.ReactNode }) {
+    return (
+        <div className="text-[10px] font-medium tracking-[0.07em] text-[#6B7280]/50 uppercase px-2.5 pt-3 pb-1 select-none">
+            {children}
+        </div>
+    );
+}
+
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handleLogout, isOpen, setIsOpen, settings, segmentLabels }) => {
     const currentLang = (settings?.['language'] as Language) || 'pt';
     const t = translations[currentLang];
@@ -40,143 +46,101 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
         setIsOpen(false);
     };
 
+    const initials = (user?.name || 'U').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+
+    const NavItem = ({ tabId, icon, label }: { tabId: string; icon: React.ReactNode; label: string }) => {
+        const isActive = activeTab === tabId;
+        return (
+            <button
+                onClick={() => handleNavClick(tabId)}
+                className={`w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[7px] text-[12.5px] mb-[1px] transition-colors text-left ${
+                    isActive
+                        ? 'bg-white/[0.08] text-[#F3F4F6]'
+                        : 'text-[#6B7280] hover:bg-white/[0.05] hover:text-[#D1D5DB]'
+                }`}
+            >
+                <span className={`shrink-0 ${isActive ? 'opacity-100 text-[#F3F4F6]' : 'opacity-60'}`}>
+                    {icon}
+                </span>
+                <span className="flex-1 font-medium">{label}</span>
+                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#E8A020] shrink-0" />}
+            </button>
+        );
+    };
+
     return (
         <>
-            {/* Mobile Backdrop */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
                     onClick={() => setIsOpen(false)}
                 />
             )}
 
-            <aside className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[var(--sidebar-bg)] text-[var(--sidebar-text)] flex flex-col border-r border-white/5 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} shadow-[4px_0_24px_rgba(0,0,0,0.2)]`}>
-                <div className="p-6 border-b border-[var(--border-muted)] flex flex-col items-center justify-center relative">
-                    {/* Mobile Close Button */}
-                    <button 
+            <aside className={`fixed md:sticky top-0 left-0 h-screen w-[220px] min-w-[220px] bg-[#111318] flex flex-col border-r border-white/[0.06] z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+
+                {/* Logo */}
+                <div className="px-4 py-5 flex items-center gap-2.5 border-b border-white/[0.06] relative">
+                    <button
                         onClick={() => setIsOpen(false)}
-                        className="absolute right-4 top-4 md:hidden p-1 text-slate-400 hover:text-white"
+                        className="absolute right-3 top-3 md:hidden p-1 text-[#6B7280] hover:text-white"
                     >
-                        <X size={20} />
+                        <X size={16} />
                     </button>
-                    <img
-                        src={settings?.logo_image || "https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl"}
-                        alt="Logo"
-                        className="h-12 md:h-16 w-auto max-w-[12rem] object-contain mb-2 drop-shadow-md"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                        }}
-                    />
+                    <div className="w-[30px] h-[30px] bg-[#E8A020] rounded-[8px] flex items-center justify-center text-white font-bold text-[13px] shrink-0">
+                        D
+                    </div>
+                    <div>
+                        <div className="text-[13px] font-semibold text-gray-100 tracking-tight leading-tight">
+                            {settings?.company_name || 'D&E Hood'}
+                        </div>
+                        <div className="text-[10px] text-[#6B7280] mt-0.5">MCR Platform</div>
+                    </div>
                 </div>
 
-                <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                    <button
-                        onClick={() => handleNavClick('dashboard')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'dashboard' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                    >
-                        <LayoutDashboard size={20} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{t.dashboard}</span>
-                    </button>
+                {/* Nav */}
+                <nav className="flex-1 overflow-y-auto py-2 px-2">
+                    <NavItem tabId="dashboard" icon={<LayoutDashboard size={15} />} label={t.dashboard} />
+
                     {user.role === 'admin' && (
                         <>
-                            <button
-                                onClick={() => handleNavClick('calendar')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'calendar' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <CalendarDays size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{t.calendar}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('leads')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'leads' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <Phone size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{t.leads}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('clients')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'clients' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <Users size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{segmentLabels?.clients || t.clients}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('team')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'team' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <Users size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{t.team}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('performance')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'performance' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <BarChart3 size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{t.performance}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('services')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'services' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <ClipboardList size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{segmentLabels?.services || t.services}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('automation')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'automation' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <Zap size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{t.automation}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('guide')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'guide' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <BookOpen size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{t.guide}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('security')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'security' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <Shield size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{t.security}</span>
-                            </button>
-                            <button
-                                onClick={() => handleNavClick('billing')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'billing' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                            >
-                                <CreditCard size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Assinatura</span>
-                            </button>
+                            <NavItem tabId="calendar"  icon={<CalendarDays size={15} />} label={t.calendar} />
+                            <NavItem tabId="leads"     icon={<Phone size={15} />}        label={t.leads} />
+
+                            <SidebarGroupLabel>Operações</SidebarGroupLabel>
+                            <NavItem tabId="clients"     icon={<Users size={15} />}       label={segmentLabels?.clients || t.clients} />
+                            <NavItem tabId="team"        icon={<Users size={15} />}       label={t.team} />
+                            <NavItem tabId="performance" icon={<BarChart3 size={15} />}   label={t.performance} />
+                            <NavItem tabId="services"    icon={<ClipboardList size={15} />} label={segmentLabels?.services || t.services} />
+
+                            <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+                            <NavItem tabId="automation"     icon={<Zap size={15} />}      label={t.automation} />
+                            <NavItem tabId="guide"          icon={<BookOpen size={15} />}  label={t.guide} />
+                            <NavItem tabId="security"       icon={<Shield size={15} />}    label={t.security} />
+                            <NavItem tabId="billing"        icon={<CreditCard size={15} />} label="Assinatura" />
+                            <NavItem tabId="admin_settings" icon={<Settings size={15} />}  label={t.admin_settings} />
                         </>
                     )}
                 </nav>
 
-                <div className="px-4 py-6 space-y-4 border-t border-slate-800 bg-black/20">
-                    {user.role === 'admin' && (
-                        <button
-                            onClick={() => handleNavClick('admin_settings')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'admin_settings' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
-                        >
-                            <Settings size={20} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">{t.admin_settings}</span>
-                        </button>
-                    )}
-                    
+                {/* User footer */}
+                <div className="p-2 border-t border-white/[0.06]">
+                    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-[7px] cursor-default">
+                        <div className="w-[26px] h-[26px] rounded-full bg-[#1E3048] border border-white/10 flex items-center justify-center text-[10px] font-semibold text-[#93B4D8] shrink-0">
+                            {initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-[12px] text-[#9CA3AF] truncate">{user?.name || 'Usuário'}</div>
+                            <div className="text-[10px] text-[#6B7280] capitalize">{user?.role || 'Admin'}</div>
+                        </div>
+                    </div>
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-none text-[#E05252]/70 hover:text-[#E05252] hover:bg-[#E05252]/5 transition-all text-[10px] font-black uppercase tracking-widest"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[7px] text-[12px] text-[#E05252]/60 hover:text-[#E05252] hover:bg-[#E05252]/5 transition-colors mt-0.5"
                     >
-                        <LogOut size={20} />
+                        <LogOut size={14} className="shrink-0" />
                         <span>{t.logout}</span>
                     </button>
-
-                    <div className="pt-4 border-t border-white/5 flex flex-col items-center gap-2 opacity-40 hover:opacity-100 transition-opacity">
-                        <img src="/mcr-logo.png" alt="MCR Logo" className="h-5 w-auto" />
-                        <span className="text-[8px] font-black uppercase tracking-tighter text-slate-400">Powered by MCR Platform</span>
-                    </div>
                 </div>
             </aside>
         </>

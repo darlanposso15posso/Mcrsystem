@@ -19,37 +19,59 @@
   --color-success: #0A6B48;
 
   /* ── Backgrounds ─────────────────────────────────────────── */
-  --color-main-bg: var(--bg-color, #F4F6FA);
-  --color-card: var(--card-color, #1C2A3E);
-  --color-card-alt: var(--card-alt-color, #243450);
-  --color-sidebar: var(--sidebar-bg, #0F1623);
-  --color-header: var(--header-bg, rgba(244, 246, 250, 0.9));
+  --color-main-bg: var(--bg-color, #F7F8FA);
+  --color-card: var(--card-color, #FFFFFF);
+  --color-card-alt: var(--card-alt-color, #F8FAFD);
+  --color-sidebar: var(--sidebar-bg, #111318);
+  --color-header: var(--header-bg, rgba(255, 255, 255, 0.95));
 
   /* ── Text ────────────────────────────────────────────────── */
-  --color-text-main: var(--text-primary, #E8F0FB);
-  --color-text-muted: var(--text-muted, #7A90AC);
-  --color-text-faint: var(--text-faint, #4A5A72);
+  --color-text-main: var(--text-primary, #111318);
+  --color-text-muted: var(--text-muted, #6B7280);
+  --color-text-faint: var(--text-faint, #9CA3AF);
 
   /* ── Borders ────────────────────────────────────────────── */
-  --color-border-main: var(--border-color, rgba(255, 255, 255, 0.1));
-  --color-border-muted: var(--border-muted, rgba(255, 255, 255, 0.06));
+  --color-border-main: var(--border-color, rgba(0, 0, 0, 0.07));
+  --color-border-muted: var(--border-muted, rgba(0, 0, 0, 0.05));
+
+  /* ── SaaS Modern tokens ──────────────────────────────────── */
+  --color-sidebar-bg:           #111318;
+  --color-sidebar-hover:        rgba(255,255,255,0.05);
+  --color-sidebar-active:       rgba(255,255,255,0.08);
+  --color-sidebar-border:       rgba(255,255,255,0.06);
+  --color-sidebar-text:         #6B7280;
+  --color-sidebar-text-active:  #F3F4F6;
+  --color-sidebar-accent:       #E8A020;
+  --color-brand-primary:        #1A56DB;
+  --color-brand-primary-h:      #1545B8;
+  --color-brand-accent:         #E8A020;
+  --color-surface-bg:           #F7F8FA;
+  --color-surface-card:         #FFFFFF;
+  --color-surface-card-alt:     #F8FAFD;
+  --color-status-success:       #0A6B48;
+  --color-status-success-bg:    #EDFAF4;
+  --color-status-danger:        #C0392B;
+  --color-status-danger-bg:     #FEF1EF;
+  --color-status-warning:       #92570A;
+  --color-status-warning-bg:    #FEF6E7;
+  --color-status-info-bg:       #EEF4FF;
 }
 
 :root {
   /* --- Sidebar --- */
-  --sidebar-bg:           #0F1623;
-  --sidebar-active:       #1E3048;
-  --sidebar-border:       rgba(255, 255, 255, 0.07);
-  --sidebar-text:         #7A90AC;
-  --sidebar-text-active:  #E8F0FB;
+  --sidebar-bg:           #111318;
+  --sidebar-active:       rgba(255,255,255,0.08);
+  --sidebar-border:       rgba(255, 255, 255, 0.06);
+  --sidebar-text:         #6B7280;
+  --sidebar-text-active:  #F3F4F6;
   --sidebar-accent:       #E8A020;
 
   /* --- Superfícies --- */
-  --bg-color:             #F4F6FA;
-  --card-color:           #1C2A3E;
-  --card-alt-color:       #243450;
-  --border-color:         rgba(255, 255, 255, 0.1);
-  --border-muted:         rgba(255, 255, 255, 0.06);
+  --bg-color:             #F7F8FA;
+  --card-color:           #FFFFFF;
+  --card-alt-color:       #F8FAFD;
+  --border-color:         rgba(0, 0, 0, 0.07);
+  --border-muted:         rgba(0, 0, 0, 0.05);
 
   /* --- Aliases for new spec --- */
   --bg:                   #F4F6FA;
@@ -71,33 +93,33 @@
   --accent-light:         rgba(232, 160, 32, 0.12);
 
   /* --- Texto --- */
-  --text-primary:         #E8F0FB;
-  --text-secondary:       #A8BDDA;
-  --text-muted:           #7A90AC;
-  --text-faint:           #4A5A72;
+  --text-primary:         #111318;
+  --text-secondary:       #374151;
+  --text-muted:           #6B7280;
+  --text-faint:           #9CA3AF;
 
   /* --- Header --- */
-  --header-bg:            rgba(244, 246, 250, 0.92);
+  --header-bg:            rgba(255, 255, 255, 0.95);
 
   /* --- Semânticas --- */
   --success:              #0A6B48;
   --success-hover:        #085A3C;
-  --success-bg:           rgba(10, 107, 72, 0.15);
-  --success-border:       rgba(10, 107, 72, 0.3);
+  --success-bg:           #EDFAF4;
+  --success-border:       rgba(10, 107, 72, 0.2);
 
-  --danger:               #B82828;
+  --danger:               #C0392B;
   --danger-hover:         #9A2020;
-  --danger-bg:            rgba(184, 40, 40, 0.12);
-  --danger-border:        rgba(184, 40, 40, 0.3);
+  --danger-bg:            #FEF1EF;
+  --danger-border:        rgba(192, 57, 43, 0.2);
 
-  --warning:              #E8A020;
+  --warning:              #92570A;
   --warning-hover:        #CC8A10;
-  --warning-bg:           rgba(232, 160, 32, 0.12);
-  --warning-border:       rgba(232, 160, 32, 0.3);
+  --warning-bg:           #FEF6E7;
+  --warning-border:       rgba(146, 87, 10, 0.2);
 
   --info:                 #1A56DB;
-  --info-bg:              rgba(26, 86, 219, 0.12);
-  --info-border:          rgba(26, 86, 219, 0.25);
+  --info-bg:              #EEF4FF;
+  --info-border:          rgba(26, 86, 219, 0.15);
 
   /* --- Shape --- */
   --radius:               8px;
@@ -164,14 +186,14 @@ body {
   background: var(--header-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(15, 22, 35, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
 }
 
 /* Subtle grid for page background */
 .hud-grid {
   background-image:
-    linear-gradient(to right, rgba(15, 22, 35, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 22, 35, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
   background-size: 30px 30px;
 }
 

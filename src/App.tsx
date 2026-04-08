@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
 import {
   AlertTriangle,
-  Menu,
   CheckCircle2,
 } from 'lucide-react';
 import { ServiceRecord, User } from './types';
@@ -512,7 +511,7 @@ function App() {
 
   return (
     <>
-      <div className="min-h-screen bg-[var(--bg-color)] flex font-sans text-[var(--text-primary)]">
+      <div className="min-h-screen bg-[#F7F8FA] flex font-sans text-[var(--text-primary)]">
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -524,28 +523,7 @@ function App() {
           segmentLabels={s}
         />
 
-        <main className="flex-1 overflow-y-auto hud-grid hud-scanline">
-          {/* Mobile Header */}
-          <div className="md:hidden flex items-center justify-between p-4 bg-[var(--sidebar-bg)] border-b border-[var(--border-muted)] shadow-sm">
-            <div className="flex items-center gap-2">
-              <img
-                src={settings?.logo_image || 'https://drive.google.com/uc?export=download&id=18_iHEeJb9kpZV-MOYDKrwSlT6jIKRjvl'}
-                alt="Company Logo"
-                className="h-8 w-auto object-contain"
-                referrerPolicy="no-referrer"
-                onError={e => (e.currentTarget.style.display = 'none')}
-              />
-              <div className="h-6 w-[1px] bg-white/10 mx-1"></div>
-              <img src="/mcr-logo.png" alt="MCR Logo" className="h-6 w-auto opacity-60" />
-            </div>
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
-            >
-              <Menu size={24} />
-            </button>
-          </div>
-
+        <main className="flex-1 overflow-y-auto hud-grid">
           <Header
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -553,13 +531,15 @@ function App() {
             setShowClientModal={setShowClientModal}
             settings={settings}
             segmentLabels={s}
+            activeTab={activeTab}
+            onMenuOpen={() => setIsMobileMenuOpen(true)}
           />
 
-          <div className="p-4 md:p-8 max-w-7xl mx-auto">
+          <div className="p-6 md:p-7 max-w-7xl mx-auto">
 
             {/* Trial / Expired Banner */}
             {user.role === 'admin' && subscription.status === 'trial' && subscription.trialDaysLeft !== null && subscription.trialDaysLeft <= 7 && (
-              <div className="flex items-center gap-3 p-3 mb-4 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-400">
+              <div className="flex items-center gap-3 p-3 mb-4 rounded-[9px] border bg-[#FEF6E7] border-[#92570A]/20 text-[#92570A]">
                 <AlertTriangle size={16} className="shrink-0" />
                 <span className="text-xs font-bold flex-1">
                   {subscription.trialDaysLeft === 0 ? 'Seu trial expira hoje!' : `Trial expira em ${subscription.trialDaysLeft} dia${subscription.trialDaysLeft !== 1 ? 's' : ''}.`}
@@ -574,7 +554,7 @@ function App() {
               </div>
             )}
             {user.role === 'admin' && (subscription.status === 'expired' || subscription.status === 'canceled') && (
-              <div className="flex items-center gap-3 p-3 mb-4 rounded-xl border bg-red-500/10 border-red-500/20 text-red-400">
+              <div className="flex items-center gap-3 p-3 mb-4 rounded-[9px] border bg-[#FEF1EF] border-[#C0392B]/20 text-[#C0392B]">
                 <AlertTriangle size={16} className="shrink-0" />
                 <span className="text-xs font-bold flex-1">
                   {subscription.status === 'expired' ? 'Trial expirado.' : 'Assinatura cancelada.'} Escolha um plano para reativar o acesso.

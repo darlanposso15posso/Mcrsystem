@@ -151,13 +151,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                     {/* Admin Header with Customization Toggle */}
                     <div className="flex justify-between items-center mb-6">
                         <div>
-                            <h2 className="text-2xl font-black tracking-tight text-white mb-1">Visão Geral</h2>
-                            <p className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-widest italic">Controle Central D&E</p>
+                            <h2 className="text-[20px] font-medium text-gray-900 tracking-tight mb-1">Visão Geral</h2>
+                            <p className="text-[13px] text-gray-500 mt-0.5">Controle Central D&E</p>
                         </div>
                         <button
                             onClick={() => setIsCustomizing(!isCustomizing)}
-                            className={`flex items-center gap-2 px-6 py-2 rounded-none font-bold text-xs transition-all ${isCustomizing ? 'bg-blue-600 text-white' : 'bg-[var(--card-alt-color)] text-[var(--text-muted)] hover:bg-[var(--card-alt-color)]/80'
-                                }`}
+                            className={`flex items-center gap-2 px-4 py-[6px] rounded-[7px] font-medium text-[12px] border transition-all ${isCustomizing ? 'bg-[#1A56DB] text-white border-transparent' : 'bg-white text-gray-600 border-black/[0.11] hover:bg-gray-50'}`}
                         >
                             <Settings size={16} />
                             {isCustomizing ? 'Salvar Dashboard' : 'Personalizar'}
@@ -418,7 +417,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
                             {/* NFPA Compliance Gauge Widget */}
                             {visibleWidgets.nfpa_compliance && (
-                                <div className="bg-blue-600 p-8 rounded-none text-[var(--bg-color)] overflow-hidden relative blue-glow">
+                                <div className="bg-[#1A56DB] p-6 rounded-[12px] text-white overflow-hidden relative">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
                                     <h3 className="text-lg font-black uppercase tracking-tighter mb-2 italic">Standard NFPA 96</h3>
                                     <p className="text-[var(--bg-color)]/60 text-xs font-bold leading-tight mb-8">Índice atual de conformidade na base instalada.</p>
