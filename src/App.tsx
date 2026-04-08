@@ -1,11 +1,10 @@
 import React, { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react';
 import {
-  X,
   AlertTriangle,
   Menu,
   CheckCircle2,
 } from 'lucide-react';
-import { ServiceRecord, User, Client } from './types';
+import { ServiceRecord, User } from './types';
 
 // Components — eagerly loaded (needed on first render)
 import Sidebar from './components/layout/Sidebar';
@@ -46,7 +45,6 @@ import { useAppSettings } from './hooks/useAppSettings';
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { useLeads } from './hooks/useLeads';
 import { useSubscription } from './hooks/useSubscription';
-import { Recurrence } from './types';
 
 function App() {
   // ── Notification system ──────────────────────────────────────────────────
@@ -70,10 +68,10 @@ function App() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
+  const [loginError] = useState('');
 
   // ── Settings (theme, language, segment) ─────────────────────────────────
-  const { settings, setSettings, currentSegment, upsertSetting } = useAppSettings(companyId);
+  const { settings, currentSegment, upsertSetting } = useAppSettings(companyId);
   const s = segmentLabels[currentSegment || 'hood_cleaning'] || segmentLabels['hood_cleaning']; // SAFE FALLBACK
 
   // ── Subscription (must be before useClients so maxClients is available) ──
@@ -298,7 +296,7 @@ function App() {
     const cid = currentUser.companyId || currentUser.id;
     if (!cid) return; // refuse to fetch unscoped data
     try {
-      const [clientsRes, servicesRes, activeServiceRes, settingsRes, notificationsRes, profilesRes] = await Promise.all([
+      const [clientsRes, servicesRes, activeServiceRes, , notificationsRes, profilesRes] = await Promise.all([
         supabase.from('clients').select('id, name, legal_name, dba, establishment_type, business_hours, address, city, state, zip, county, manager_name, manager_role, phone, email, hood_count, filter_count, duct_type, duct_height, roof_access, recurrence, last_service_date, next_service_date, cleaning_price, lat, lng, created_at').eq('company_id', cid),
         supabase.from('services').select('id, client_id, restaurant_name, volume, system_type, condition_before, services_performed, technician_name, service_date, next_service_date, fire_hazard, nfpa_compliance, report_number, notes, inspection_start_time, status, completion_time').eq('company_id', cid).order('service_date', { ascending: false }).limit(50),
         supabase.from('services').select('*').eq('company_id', cid).eq('status', 'IN_PROGRESS').eq('technician_name', currentUser.name).order('created_at', { ascending: false }).limit(1).maybeSingle(),
@@ -395,7 +393,7 @@ function App() {
         showToast('Erro ao iniciar serviço', 'error');
       }
     });
-  }, [clients, selectedClientId, newService, user, inspectionPhotos, preCleaningChecklistData, confirmAction, showToast, loadActiveService]);
+  }, [clients, selectedClientId, newService, user, inspectionPhotos, preCleaningChecklistData, confirmAction, showToast, loadActiveService, companyId]);
 
   // ── User handlers ─────────────────────────────────────────────────────────
   const handleCreateUser = useCallback(async (e: React.FormEvent) => {
@@ -460,7 +458,7 @@ function App() {
     } catch {
       showToast('Erro ao atualizar usuário', 'error');
     }
-  }, [editingUser, showToast]);
+  }, [editingUser, showToast, companyId]);
 
   const handleDeleteNotification = useCallback(async (id: number) => {
     // Always scope deletes to the current company to prevent IDOR
@@ -477,11 +475,6 @@ function App() {
       c.city.toLowerCase().includes(deferredSearch.toLowerCase())
     ), [clients, deferredSearch]);
 
-  const filteredServices = useMemo(() =>
-    services.filter(s =>
-      (s.restaurantName ?? '').toLowerCase().includes(deferredSearch.toLowerCase()) ||
-      s.technicianName.toLowerCase().includes(deferredSearch.toLowerCase())
-    ), [services, deferredSearch]);
 
   const recentServices = useMemo(() =>
     [...services].sort((a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime()).slice(0, 5),

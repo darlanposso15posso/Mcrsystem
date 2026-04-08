@@ -31,8 +31,27 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
 
     const themes = [
         {
+            id: 'original_yellow',
+            label: '🟡 Original Yellow',
+            colors: {
+                primary_color: '#fac415',
+                bg_color: '#020617',
+                card_color: '#0f172a',
+                card_alt_color: '#1e293b',
+                sidebar_bg: '#111111',
+                sidebar_text: '#ffffff',
+                header_bg: 'rgba(2, 6, 23, 0.9)',
+                text_primary: '#f1f5f9',
+                text_muted: '#94a3b8',
+                border_color: 'rgba(255, 255, 255, 0.1)',
+                border_muted: 'rgba(255, 255, 255, 0.05)',
+                font_family: '"Inter", sans-serif',
+                glow_intensity: '0.15'
+            }
+        },
+        {
             id: 'cyber_hud',
-            label: 'Cyber HUD',
+            label: 'Cyber HUD (Blue)',
             colors: {
                 primary_color: '#3b82f6',
                 bg_color: '#020617',
@@ -221,16 +240,17 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
         if (activeSection === 'team') {
             fetchTeam();
         }
-    }, [activeSection]);
+    }, [activeSection, user?.companyId]);
 
     const fetchTeam = async () => {
+        if (!user?.companyId) { setTeamMembers([]); return; }
         setIsLoadingTeam(true);
         try {
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('company_id', user?.companyId);
-            
+                .eq('company_id', user.companyId);
+
             if (error) throw error;
             setTeamMembers(data || []);
         } catch (error) {

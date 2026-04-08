@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Users,
     ClipboardList,
@@ -6,7 +6,6 @@ import {
     AlertTriangle,
     TrendingUp,
     ShieldCheck,
-    Phone,
     Calendar,
     Clock,
     Camera,
@@ -18,14 +17,10 @@ import {
     PieChart,
     Plus
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import {
     ResponsiveContainer,
     BarChart,
     Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
     Tooltip,
     PieChart as RechartsPieChart,
     Pie,
@@ -122,14 +117,19 @@ const Dashboard: React.FC<DashboardProps> = ({
         localStorage.setItem('dashboard_widgets', JSON.stringify(newState));
     };
 
-    // Calculando estatísticas da equipe
-    const activeTechnicians = users.filter(u => u.role === 'technician' && u.status === 'active').length;
-    const pendingTechnicians = users.filter(u => u.role === 'technician' && u.status === 'pending').length;
-    const knowledgeStats = users.filter(u => u.role === 'technician' && u.status === 'active').reduce((acc, user) => {
-        const level = user.knowledgeLevel || 'Aprendiz';
-        acc[level] = (acc[level] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+    // Calculando estatísticas da equipe (memoized)
+    const { activeTechnicians, pendingTechnicians, knowledgeStats } = useMemo(() => {
+        const active = users.filter(u => u.role === 'technician' && u.status === 'active');
+        return {
+            activeTechnicians: active.length,
+            pendingTechnicians: users.filter(u => u.role === 'technician' && u.status === 'pending').length,
+            knowledgeStats: active.reduce((acc, u) => {
+                const level = u.knowledgeLevel || 'Aprendiz';
+                acc[level] = (acc[level] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>),
+        };
+    }, [users]);
 
     // Setup Admin Broadcast note check
     const adminNote = user.role === 'technician' && settings ? settings['admin_broadcast_note'] : null;
