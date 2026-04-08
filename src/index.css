@@ -1,53 +1,114 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-/* ============================================================
-   D&E Hood Cleaning — Design Tokens (CLEAN 5-COLOR)
-   Branco | Preto | Vermelho | Verde | Amarelo
-   ============================================================ */
+/* ============================================
+   MCR Platform — Design System v2
+   Refatoração de cores — Abril 2026
+   ============================================ */
 
 @theme {
   --font-sans: var(--font-family, "Inter", ui-sans-serif, system-ui, sans-serif);
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* ── Brand colors ────────────────────────────────────────── */
-  --color-primary: var(--primary-color, #16a34a);
-  --color-primary-hover: var(--primary-color-hover, #15803d);
-  --color-danger: #dc2626;
-  --color-warning: #ca8a04;
-  --color-info: #16a34a;
+  --color-primary: var(--primary-color, #1A56DB);
+  --color-primary-hover: var(--primary-color-hover, #1545B8);
+  --color-danger: #B82828;
+  --color-warning: #92570A;
+  --color-info: #1A56DB;
+  --color-success: #0A6B48;
 
   /* ── Backgrounds ─────────────────────────────────────────── */
-  --color-main-bg: var(--bg-color, #ffffff);
-  --color-card: var(--card-color, #ffffff);
-  --color-card-alt: var(--card-alt-color, #f9fafb);
-  --color-sidebar: var(--sidebar-bg, #111111);
-  --color-header: var(--header-bg, rgba(255, 255, 255, 0.98));
+  --color-main-bg: var(--bg-color, #F4F6FA);
+  --color-card: var(--card-color, #1C2A3E);
+  --color-card-alt: var(--card-alt-color, #243450);
+  --color-sidebar: var(--sidebar-bg, #0F1623);
+  --color-header: var(--header-bg, rgba(244, 246, 250, 0.9));
 
   /* ── Text ────────────────────────────────────────────────── */
-  --color-text-main: var(--text-primary, #111111);
-  --color-text-muted: var(--text-muted, #444444);
-  --color-text-faint: var(--text-faint, #888888);
+  --color-text-main: var(--text-primary, #E8F0FB);
+  --color-text-muted: var(--text-muted, #7A90AC);
+  --color-text-faint: var(--text-faint, #4A5A72);
 
   /* ── Borders ────────────────────────────────────────────── */
-  --color-border-main: var(--border-color, rgba(0, 0, 0, 0.12));
-  --color-border-muted: var(--border-muted, rgba(0, 0, 0, 0.06));
+  --color-border-main: var(--border-color, rgba(255, 255, 255, 0.1));
+  --color-border-muted: var(--border-muted, rgba(255, 255, 255, 0.06));
 }
 
 :root {
-  --bg-color: #ffffff;
-  --card-color: #ffffff;
-  --card-alt-color: #f9fafb;
-  --primary-color: #16a34a;
-  --primary-color-hover: #15803d;
-  --sidebar-bg: #111111;
-  --sidebar-text: #ffffff;
-  --header-bg: rgba(255, 255, 255, 0.98);
-  --text-primary: #111111;
-  --text-muted: #444444;
-  --text-faint: #888888;
-  --border-color: rgba(0, 0, 0, 0.12);
-  --border-muted: rgba(0, 0, 0, 0.06);
+  /* --- Sidebar --- */
+  --sidebar-bg:           #0F1623;
+  --sidebar-active:       #1E3048;
+  --sidebar-border:       rgba(255, 255, 255, 0.07);
+  --sidebar-text:         #7A90AC;
+  --sidebar-text-active:  #E8F0FB;
+  --sidebar-accent:       #E8A020;
+
+  /* --- Superfícies --- */
+  --bg-color:             #F4F6FA;
+  --card-color:           #1C2A3E;
+  --card-alt-color:       #243450;
+  --border-color:         rgba(255, 255, 255, 0.1);
+  --border-muted:         rgba(255, 255, 255, 0.06);
+
+  /* --- Aliases for new spec --- */
+  --bg:                   #F4F6FA;
+  --card:                 #1C2A3E;
+  --card-alt:             #243450;
+  --border:               rgba(255, 255, 255, 0.1);
+  --border-md:            rgba(255, 255, 255, 0.14);
+  --border-strong:        rgba(255, 255, 255, 0.22);
+
+  /* --- Marca / Ações --- */
+  --primary-color:        #1A56DB;
+  --primary-color-hover:  #1545B8;
+  --primary:              #1A56DB;
+  --primary-hover:        #1545B8;
+  --primary-active:       #1238A0;
+  --primary-bg:           rgba(26, 86, 219, 0.12);
+  --accent:               #E8A020;
+  --accent-hover:         #CC8A10;
+  --accent-light:         rgba(232, 160, 32, 0.12);
+
+  /* --- Texto --- */
+  --text-primary:         #E8F0FB;
+  --text-secondary:       #A8BDDA;
+  --text-muted:           #7A90AC;
+  --text-faint:           #4A5A72;
+
+  /* --- Header --- */
+  --header-bg:            rgba(244, 246, 250, 0.92);
+
+  /* --- Semânticas --- */
+  --success:              #0A6B48;
+  --success-hover:        #085A3C;
+  --success-bg:           rgba(10, 107, 72, 0.15);
+  --success-border:       rgba(10, 107, 72, 0.3);
+
+  --danger:               #B82828;
+  --danger-hover:         #9A2020;
+  --danger-bg:            rgba(184, 40, 40, 0.12);
+  --danger-border:        rgba(184, 40, 40, 0.3);
+
+  --warning:              #E8A020;
+  --warning-hover:        #CC8A10;
+  --warning-bg:           rgba(232, 160, 32, 0.12);
+  --warning-border:       rgba(232, 160, 32, 0.3);
+
+  --info:                 #1A56DB;
+  --info-bg:              rgba(26, 86, 219, 0.12);
+  --info-border:          rgba(26, 86, 219, 0.25);
+
+  /* --- Shape --- */
+  --radius:               8px;
+  --radius-lg:            12px;
+  --radius-xl:            16px;
+  --radius-full:          999px;
+
+  /* --- Sombras --- */
+  --shadow-sm:            0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md:            0 2px 8px rgba(0, 0, 0, 0.25);
+
   --font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -75,42 +136,42 @@ body {
 /* ── UI Utility Classes ───────────────────────────────────── */
 
 .primary-glow {
-  box-shadow: 0 4px 20px -2px rgba(250, 204, 21, 0.15);
+  box-shadow: 0 4px 20px -2px rgba(26, 86, 219, 0.2);
 }
 
 .blue-glow {
-  box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 20px -2px rgba(26, 86, 219, 0.15);
 }
 
 .blue-glow-hover:hover {
-  box-shadow: 0 8px 30px -4px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 8px 30px -4px rgba(26, 86, 219, 0.2);
   transform: translateY(-1px);
   transition: all 0.3s ease;
 }
 
 .emerald-glow {
-  box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 4px 20px -2px rgba(10, 107, 72, 0.15);
 }
 
 .emerald-glow-hover:hover {
-  box-shadow: 0 8px 30px -4px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 8px 30px -4px rgba(10, 107, 72, 0.2);
   transform: translateY(-1px);
   transition: all 0.3s ease;
 }
 
-/* Glass effect for the header (Dark mode version) */
+/* Glass effect for the header */
 .vibrant-glass-header {
   background: var(--header-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-muted);
+  border-bottom: 1px solid rgba(15, 22, 35, 0.08);
 }
 
-/* Dark mode HUD grid */
+/* Subtle grid for page background */
 .hud-grid {
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(15, 22, 35, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 22, 35, 0.03) 1px, transparent 1px);
   background-size: 30px 30px;
 }
 
@@ -125,19 +186,20 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: rgba(26, 86, 219, 0.3);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: rgba(26, 86, 219, 0.5);
 }
 
 .markdown-body {
-  @apply text-sm leading-relaxed text-slate-300;
+  @apply text-sm leading-relaxed;
+  color: var(--text-muted);
 }
 
-.markdown-body h1 { @apply text-white text-2xl font-bold mb-4; }
-.markdown-body h2 { @apply text-white text-xl font-bold mb-3 mt-6; }
+.markdown-body h1 { color: var(--text-primary); @apply text-2xl font-bold mb-4; }
+.markdown-body h2 { color: var(--text-primary); @apply text-xl font-bold mb-3 mt-6; }
 .markdown-body p { @apply mb-4; }
 .markdown-body ul { @apply list-disc pl-5 mb-4; }

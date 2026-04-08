@@ -31,6 +31,25 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({ user, settings, showToast
 
     const themes = [
         {
+            id: 'mcr_design_v2',
+            label: '🔵 MCR Design v2 (Recomendado)',
+            colors: {
+                primary_color: '#1A56DB',
+                bg_color: '#F4F6FA',
+                card_color: '#1C2A3E',
+                card_alt_color: '#243450',
+                sidebar_bg: '#0F1623',
+                sidebar_text: '#7A90AC',
+                header_bg: 'rgba(244, 246, 250, 0.92)',
+                text_primary: '#E8F0FB',
+                text_muted: '#7A90AC',
+                border_color: 'rgba(255, 255, 255, 0.1)',
+                border_muted: 'rgba(255, 255, 255, 0.06)',
+                font_family: '"Inter", sans-serif',
+                glow_intensity: '0.12'
+            }
+        },
+        {
             id: 'original_yellow',
             label: '🟡 Original Yellow',
             colors: {

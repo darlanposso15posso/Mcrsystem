@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                 <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                     <button
                         onClick={() => handleNavClick('dashboard')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'dashboard' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'dashboard' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                     >
                         <LayoutDashboard size={20} />
                         <span className="text-[10px] font-black uppercase tracking-widest">{t.dashboard}</span>
@@ -82,70 +82,70 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                         <>
                             <button
                                 onClick={() => handleNavClick('calendar')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'calendar' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'calendar' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <CalendarDays size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{t.calendar}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('leads')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'leads' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'leads' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <Phone size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{t.leads}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('clients')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'clients' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'clients' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <Users size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{segmentLabels?.clients || t.clients}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('team')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'team' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'team' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <Users size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{t.team}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('performance')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'performance' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'performance' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <BarChart3 size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{t.performance}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('services')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'services' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'services' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <ClipboardList size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{segmentLabels?.services || t.services}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('automation')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'automation' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'automation' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <Zap size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{t.automation}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('guide')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'guide' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'guide' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <BookOpen size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{t.guide}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('security')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'security' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'security' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <Shield size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">{t.security}</span>
                             </button>
                             <button
                                 onClick={() => handleNavClick('billing')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'billing' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'billing' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                             >
                                 <CreditCard size={20} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Assinatura</span>
@@ -158,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                     {user.role === 'admin' && (
                         <button
                             onClick={() => handleNavClick('admin_settings')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'admin_settings' ? 'bg-[#FACC15] text-[#111827] font-black rounded-lg shadow-sm border-none mx-2' : 'text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mx-2'}`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-none transition-all ${activeTab === 'admin_settings' ? 'bg-[var(--sidebar-active)] text-[var(--sidebar-text-active)] font-black rounded-lg shadow-sm border-none mx-2' : 'text-[var(--sidebar-text)] hover:bg-white/5 hover:text-[var(--sidebar-text-active)] rounded-lg mx-2'}`}
                         >
                             <Settings size={20} />
                             <span className="text-[10px] font-black uppercase tracking-widest">{t.admin_settings}</span>
@@ -167,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, handle
                     
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-none text-red-500/60 hover:text-red-400 hover:bg-red-500/5 transition-all text-[10px] font-black uppercase tracking-widest"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-none text-[#E05252]/70 hover:text-[#E05252] hover:bg-[#E05252]/5 transition-all text-[10px] font-black uppercase tracking-widest"
                     >
                         <LogOut size={20} />
                         <span>{t.logout}</span>
